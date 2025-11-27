@@ -12,48 +12,6 @@ st.set_page_config(
 )
 
 # ==========================
-# CSS FOR STICKY BOTTOM NAV
-# ==========================
-def inject_css():
-    st.markdown(
-        """
-        <style>
-        /* Give space at the bottom so content is not hidden behind the nav */
-        .main > div {
-            padding-bottom: 4.5rem;
-        }
-
-        /* Sticky bottom nav: the container that has the #bottom-nav-hook inside */
-        div[data-testid="stVerticalBlock"]:has(#bottom-nav-hook) {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 0.4rem 0.6rem;
-            background-color: #ffffff;
-            box-shadow: 0 -2px 8px rgba(0,0,0,0.15);
-            z-index: 999;
-        }
-
-        /* Style nav buttons */
-        div[data-testid="stVerticalBlock"]:has(#bottom-nav-hook) .stButton > button {
-            border-radius: 999px;
-            font-size: 0.8rem;
-            padding: 0.25rem 0.4rem;
-        }
-
-        /* Smaller height on mobile screens */
-        @media (max-width: 768px) {
-            .main > div {
-                padding-bottom: 5.5rem;
-            }
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-# ==========================
 # COURSE DATA
 # ==========================
 
@@ -231,9 +189,8 @@ UNITS = [
 ]
 
 # ==========================
-# LESSONS BY UNIT
+# LESSONS BY UNIT (ENGLISH ONLY)
 # ==========================
-# (igual que antes: omito comentarios para no hacer más largo)
 
 LESSONS = {
     1: [
@@ -723,7 +680,7 @@ def show_logo():
             with cols[0]:
                 st.image(logo_path, use_column_width=True)
             with cols[1]:
-                st.markdown(" ")
+                st.markdown(" ")  # spacer
         except Exception:
             st.warning("The file 'logo-english-classes.png' exists but is not a valid image.")
     else:
@@ -960,7 +917,7 @@ actually experience in their daily life and work.
     show_signature()
 
 # ==========================
-# BOTTOM NAVIGATION (STICKY)
+# BOTTOM NAVIGATION (MOBILE FRIENDLY)
 # ==========================
 
 PAGES = [
@@ -984,33 +941,28 @@ def render_page(page_id: str):
         lessons_page()
 
 def bottom_nav():
-    # Hook element used by CSS :has() to locate this block and make it sticky
-    nav_container = st.container()
-    with nav_container:
-        st.markdown('<div id="bottom-nav-hook"></div>', unsafe_allow_html=True)
+    st.markdown("---")
+    st.markdown("#### Navigation")
+    st.caption("Tap a button to move between sections")
 
-        st.markdown("#### Navigation")
-        st.caption("Tap a button to move between sections")
+    cols = st.columns(len(PAGES))
 
-        cols = st.columns(len(PAGES))
+    if "page" not in st.session_state:
+        st.session_state["page"] = "Overview"
 
-        if "page" not in st.session_state:
-            st.session_state["page"] = "Overview"
+    for i, page in enumerate(PAGES):
+        is_current = (st.session_state["page"] == page["id"])
+        text = f"{page['icon']} {page['label']}"
+        btn_label = f"**{text}**" if is_current else text
 
-        for i, page in enumerate(PAGES):
-            is_current = (st.session_state["page"] == page["id"])
-            text = f"{page['icon']} {page['label']}"
-            btn_label = f"**{text}**" if is_current else text
-
-            if cols[i].button(btn_label, use_container_width=True, key=f"nav_{page['id']}"):
-                st.session_state["page"] = page["id"]
+        if cols[i].button(btn_label, use_container_width=True, key=f"nav_{page['id']}"):
+            st.session_state["page"] = page["id"]
 
 # ==========================
 # MAIN
 # ==========================
 
 def main():
-    inject_css()
     show_logo()
 
     if "page" not in st.session_state:
