@@ -3,7 +3,7 @@ import pandas as pd
 import os
 
 # ==========================
-# CONFIGURACIÓN GENERAL
+# BASIC CONFIG
 # ==========================
 st.set_page_config(
     page_title="A2 English Master",
@@ -12,47 +12,47 @@ st.set_page_config(
 )
 
 # ==========================
-# DATOS DEL CURSO
+# COURSE DATA
 # ==========================
 
 COURSE_INFO = {
-    "title": "A2 Elementary English Course",
-    "level": "A2 – Elementary",
+    "title": "A2 English Master – Elementary Course",
+    "level": "A2 – Elementary (CEFR)",
     "total_hours": 60,
     "units": 10,
     "hours_per_unit": 6,
     "description": (
-        "A communicative A2 course based on the Cambridge Empower Second Edition "
-        "Student’s Book (A2). The program develops integrated skills in listening, "
-        "speaking, reading and writing, with a strong focus on everyday situations "
-        "and practical communication."
+        "A practical and communicative English course based on the Cambridge Empower "
+        "A2 (Second Edition) syllabus. The program develops listening, speaking, reading "
+        "and writing through real-life contexts such as travel, work, study and everyday "
+        "communication."
     ),
     "target_students": (
-        "Adult and young adult learners who already master basic A1 structures "
-        "and want to consolidate and expand their English up to A2 level."
+        "Adult and young adult learners who already know basic A1 structures and want "
+        "to consolidate and expand their English up to A2 level with clear, guided practice."
     ),
     "general_objectives": [
-        "Understand and use everyday expressions related to areas of most immediate relevance.",
-        "Communicate in simple and routine tasks requiring a simple and direct exchange of information.",
-        "Describe in simple terms aspects of their background, immediate environment and matters in areas of immediate need.",
-        "Develop confidence in real-life situations: travel, work, study and social interactions."
+        "Understand and use everyday expressions related to personal information, daily life and common situations.",
+        "Participate in simple, routine conversations that require a direct exchange of information.",
+        "Describe in simple terms aspects of their background, immediate environment and basic needs.",
+        "Build confidence using English in real-life situations: travel, work, cultural exchange and online communication."
     ],
     "methodology": [
-        "Communicative approach with emphasis on speaking and listening.",
-        "Task-based learning: role plays, pair work and group work.",
-        "Use of authentic materials, videos and audio tracks.",
-        "Continuous feedback and focus on form (grammar and vocabulary in context)."
+        "Communicative approach with strong focus on speaking and listening.",
+        "Task-based learning: role plays, pair work and group activities.",
+        "Integration of grammar and vocabulary in realistic situations.",
+        "Continuous feedback and short reflection moments (insights) to track progress."
     ],
     "assessment": [
-        "Unit progress checks every 2 units.",
-        "Continuous assessment through class participation and short tasks.",
-        "Mid-course written and oral assessment.",
-        "Final integrated exam (listening, reading, writing and speaking)."
+        "Unit progress checks every two units.",
+        "Continuous assessment through participation, homework and short tasks.",
+        "Mid-course written and oral assessment after Unit 5.",
+        "Final integrated exam (listening, reading, writing and speaking) after Unit 10."
     ]
 }
 
 # ==========================
-# UNIDADES (SYLLABUS)
+# UNITS (SYLLABUS)
 # ==========================
 
 UNITS = [
@@ -189,58 +189,56 @@ UNITS = [
 ]
 
 # ==========================
-# CLASES POR UNIDAD
+# LESSONS BY UNIT (all in English)
 # ==========================
-# 3 clases por unidad: Class 1, Class 2, Class 3
-# Cada clase tiene teoría, práctica e insights (tips).
 
 LESSONS = {
     1: [
         {
             "title": "Class 1 – Personal information",
             "theory": [
-                "Verb *to be* in the present (affirmative, negative and questions).",
+                "Verb to be in the present (affirmative, negative and questions).",
                 "Subject pronouns (I, you, he, she, it, we, they).",
                 "Basic word order in English sentences."
             ],
             "practice": [
-                "Completar diálogos con *am / is / are*.",
-                "Presentarte y presentar a un compañero: *This is...*",
-                "Juego de tarjetas con países y nacionalidades."
+                "Complete short dialogues with am / is / are.",
+                "Introduce yourself and a partner: “This is …”.",
+                "Card game with countries and nationalities."
             ],
             "insights": [
-                "En inglés casi siempre necesitas sujeto: evita frases sin *I / you / he...*.",
-                "Practica decir tu nombre, país y profesión en menos de 20 segundos."
+                "In English you almost always need a subject – avoid sentences without I / you / he…",
+                "Practice saying your name, country and job in under 20 seconds."
             ]
         },
         {
             "title": "Class 2 – Countries & jobs",
             "theory": [
                 "Countries and nationalities (Mexico – Mexican, Brazil – Brazilian, etc.).",
-                "Questions with *Where are you from?* and *What do you do?*"
+                "Questions with “Where are you from?” and “What do you do?”."
             ],
             "practice": [
-                "Encuesta en clase sobre países y trabajos.",
-                "Role-play: primera conversación en una conferencia internacional."
+                "Class survey about countries and jobs.",
+                "Role play: first conversation at an international event."
             ],
             "insights": [
-                "Aprende las nacionalidades de los países que recibes como turistas.",
-                "Usa siempre mayúscula en países y nacionalidades."
+                "Learn nationalities for the countries you usually receive as tourists.",
+                "Always use capital letters for countries and nationalities in English."
             ]
         },
         {
             "title": "Class 3 – People you know",
             "theory": [
-                "Review of verb *be* and Wh-questions.",
-                "Adjetivos básicos para describir personas (friendly, funny, quiet...)."
+                "Review of verb be and Wh-questions.",
+                "Basic adjectives to describe people (friendly, funny, quiet, etc.)."
             ],
             "practice": [
-                "Hablar de tres personas importantes en tu vida.",
-                "Escribir notas simples sobre amigos o familia."
+                "Talk about three important people in your life.",
+                "Write short notes about friends or family members."
             ],
             "insights": [
-                "Con 10 adjetivos bien dominados puedes describir a casi cualquier persona.",
-                "Piensa siempre en ejemplos reales: familia, colegas, turistas."
+                "With 10–15 adjectives you can describe almost anyone at A2 level.",
+                "Think of real people (family, colleagues, tourists) when you practise."
             ]
         }
     ],
@@ -248,16 +246,16 @@ LESSONS = {
         {
             "title": "Class 1 – Daily routines",
             "theory": [
-                "Present simple: estructura básica.",
+                "Present simple: basic structure.",
                 "Adverbs of frequency (always, usually, sometimes, never)."
             ],
             "practice": [
-                "Completar un horario diario con rutinas.",
-                "Entrevista en parejas: *What time do you…?*"
+                "Complete a daily schedule with routines.",
+                "Interview a partner: “What time do you …?”."
             ],
             "insights": [
-                "Los adverbios de frecuencia van normalmente antes del verbo principal.",
-                "Relaciona tu rutina real para recordar mejor."
+                "Adverbs of frequency usually go before the main verb (I usually get up at 7).",
+                "Connect English to your real routine to remember faster."
             ]
         },
         {
@@ -267,27 +265,27 @@ LESSONS = {
                 "Free-time activities vocabulary."
             ],
             "practice": [
-                "Encuesta de actividades favoritas.",
-                "Crear un pequeño gráfico de barras con resultados (hablando de ellos en inglés)."
+                "Survey about favourite free-time activities.",
+                "Create a simple bar chart and talk about the results."
             ],
             "insights": [
-                "Practicar respuestas cortas ayuda mucho en listening y speaking.",
-                "Usa *I like / I love / I don’t like* para sonar más natural."
+                "Short answers (“Yes, I do / No, I don’t”) help a lot in listening and speaking.",
+                "Use “I like / I love / I don’t like” to sound more natural."
             ]
         },
         {
             "title": "Class 3 – Habits & lifestyle",
             "theory": [
-                "Revisión de expresiones de frecuencia.",
-                "Conectores simples: *and, but, because*."
+                "Review of frequency expressions.",
+                "Simple connectors: and, but, because."
             ],
             "practice": [
-                "Escribir un párrafo sobre tu día típico.",
-                "Comparar rutinas con un compañero: *We both..., but I..., and he...*"
+                "Write a short paragraph about your typical day.",
+                "Compare routines with a partner: “We both…, but I…, and he…”."
             ],
             "insights": [
-                "Los conectores simples dan fluidez aunque el nivel sea A2.",
-                "Piensa en tu verdadero día, no en ejemplos inventados."
+                "Even with simple grammar, connectors make your English sound more fluent.",
+                "Think of your real day, not imaginary examples."
             ]
         }
     ],
@@ -296,45 +294,45 @@ LESSONS = {
             "title": "Class 1 – Food vocabulary",
             "theory": [
                 "Countable vs uncountable nouns.",
-                "A / an / some / any."
+                "Use of a / an / some / any."
             ],
             "practice": [
-                "Clasificar alimentos en contables e incontables.",
-                "Juegos de *shopping list* en parejas."
+                "Classify food items into countable and uncountable.",
+                "Shopping-list games in pairs."
             ],
             "insights": [
-                "No intentes traducir todo: memoriza alimentos directamente en inglés.",
-                "Piensa en menús reales de restaurantes donde trabajas o visitas."
+                "Don’t translate every word; learn food vocabulary directly in English.",
+                "Use real menus from local restaurants when you practise."
             ]
         },
         {
             "title": "Class 2 – At the restaurant",
             "theory": [
-                "Questions in restaurants: *Can I have…?*, *Would you like…?*",
-                "Polite expressions: *please, thank you, here you are*."
+                "Common questions in restaurants: “Can I have…?”, “Would you like…?”.",
+                "Polite expressions: please, thank you, here you are."
             ],
             "practice": [
-                "Role-play mesero/cliente.",
-                "Crear un mini-menú para practicar pedidos."
+                "Role play waiter / customer.",
+                "Create a mini-menu and practise ordering."
             ],
             "insights": [
-                "Ideal para contextos de turismo: usa vocabulario de tu ciudad.",
-                "Las expresiones corteses cambian mucho la experiencia del cliente."
+                "Perfect content for tourism and hospitality contexts.",
+                "Polite phrases completely change the customer experience."
             ]
         },
         {
             "title": "Class 3 – Talking about food you like",
             "theory": [
                 "Like / love / don’t like + noun or + -ing.",
-                "Adjetivos de comida: spicy, sweet, salty, bitter."
+                "Food adjectives: spicy, sweet, salty, bitter."
             ],
             "practice": [
-                "Encuesta sobre comida favorita del grupo.",
-                "Escribir un párrafo breve sobre tu platillo favorito."
+                "Group survey about favourite food.",
+                "Write a short paragraph about your favourite dish."
             ],
             "insights": [
-                "Con este vocabulario puedes describir gastronomía local a turistas.",
-                "Usa ejemplos típicos de Chiapas para conectar con tu realidad."
+                "You can use this language to describe local gastronomy to visitors.",
+                "Use typical dishes from Chiapas as examples when you teach."
             ]
         }
     ],
@@ -343,45 +341,45 @@ LESSONS = {
             "title": "Class 1 – My home",
             "theory": [
                 "There is / there are.",
-                "Some / any con lugares y objetos."
+                "Some / any with places and objects."
             ],
             "practice": [
-                "Dibujar un plano simple de tu casa y describirlo.",
-                "Juego de *spot the difference* con dos casas."
+                "Draw a simple floor plan of your home and describe it.",
+                "Spot-the-difference game with two homes."
             ],
             "insights": [
-                "Usa este lenguaje para describir alojamientos a turistas.",
-                "Empieza siempre por lo general y luego ve a los detalles."
+                "Use this language when you describe accommodation to tourists.",
+                "Start with the general idea, then add details."
             ]
         },
         {
             "title": "Class 2 – In the city",
             "theory": [
                 "Places in a city.",
-                "Prepositions of place (next to, opposite, between...)."
+                "Prepositions of place (next to, opposite, between, etc.)."
             ],
             "practice": [
-                "Dar indicaciones en un mapa sencillo.",
-                "Role-play: turista pide direcciones en la ciudad."
+                "Give directions on a simple map.",
+                "Role play: tourist asking for directions in the city."
             ],
             "insights": [
-                "Esta clase es oro puro para guías y personal turístico.",
-                "Practica con mapas reales de Tuxtla o San Cristóbal."
+                "Essential for guides and front-desk staff.",
+                "Practise with real maps of Tuxtla or San Cristóbal."
             ]
         },
         {
             "title": "Class 3 – Describing places",
             "theory": [
-                "Adjetivos de lugares: quiet, busy, modern, traditional.",
-                "Structura básica de un párrafo descriptivo."
+                "Adjectives for places: quiet, busy, modern, traditional.",
+                "Basic structure of a descriptive paragraph."
             ],
             "practice": [
-                "Escribir sobre tu barrio o tu ciudad.",
-                "Presentar oralmente un lugar turístico de Chiapas."
+                "Write about your neighbourhood or city.",
+                "Present a tourist place in Chiapas to the group."
             ],
             "insights": [
-                "Llevar fotos impresas o en el móvil ayuda a activar vocabulario.",
-                "Reutiliza este texto como base para guiones de tours."
+                "Using photos or slides strongly activates vocabulary.",
+                "You can reuse this text later in tours or websites."
             ]
         }
     ],
@@ -389,31 +387,31 @@ LESSONS = {
         {
             "title": "Class 1 – Regular past",
             "theory": [
-                "Past simple regular: afirmativa.",
-                "Pronunciación de -ed (/t/, /d/, /ɪd/)."
+                "Past simple regular: affirmative.",
+                "Pronunciation of -ed (/t/, /d/, /ɪd/)."
             ],
             "practice": [
-                "Transformar oraciones de presente a pasado.",
-                "Juego de *timeline* con eventos personales."
+                "Change present sentences into past.",
+                "Timeline game with personal events."
             ],
             "insights": [
-                "La pronunciación de -ed marca mucho la diferencia en la fluidez.",
-                "Relaciona verbos con momentos importantes de tu vida."
+                "Good -ed pronunciation makes your speech much clearer.",
+                "Connect verbs to real moments in your life to remember them."
             ]
         },
         {
             "title": "Class 2 – Past questions",
             "theory": [
-                "Did + base form.",
-                "Short answers: *Yes, I did* / *No, I didn’t*."
+                "Questions with did + base form.",
+                "Short answers: “Yes, I did / No, I didn’t”."
             ],
             "practice": [
-                "Entrevistas sobre el fin de semana pasado.",
-                "Encuesta: *When did you first…?* (travel, work, study English)."
+                "Interviews about last weekend.",
+                "Survey: “When did you first…?” (travel abroad, work, study English)."
             ],
             "insights": [
-                "Aprender preguntas comunes te ayuda a mantener conversaciones reales.",
-                "Úsalo en tours para conectar con tus visitantes."
+                "Common questions help you keep real conversations going.",
+                "Great for connecting with visitors during tours."
             ]
         },
         {
@@ -423,12 +421,12 @@ LESSONS = {
                 "Time expressions: yesterday, last week, two years ago."
             ],
             "practice": [
-                "Escribir una breve historia familiar.",
-                "Contar una anécdota en parejas."
+                "Write a short family story.",
+                "Tell a personal anecdote in pairs."
             ],
             "insights": [
-                "Las historias personales hacen que el idioma se vuelva significativo.",
-                "Usa este tipo de narración para storytelling en turismo."
+                "Personal stories make the language meaningful and memorable.",
+                "Use storytelling techniques in your tours as well."
             ]
         }
     ],
@@ -436,16 +434,16 @@ LESSONS = {
         {
             "title": "Class 1 – Free time in the past",
             "theory": [
-                "Past simple irregular verbs (go, have, do, see…).",
-                "Contraste con presente."
+                "Past simple irregular verbs (go, have, do, see, etc.).",
+                "Contrast with present simple."
             ],
             "practice": [
-                "Tarjetas de matching: base form – past form.",
-                "Jugar *Yesterday I...* en círculo."
+                "Matching game: base form – past form.",
+                "Circle game: “Yesterday I…”."
             ],
             "insights": [
-                "Memoriza primero los verbos irregulares más frecuentes.",
-                "Crea tus propias tarjetas de estudio."
+                "Focus first on the most frequent irregular verbs.",
+                "Create your own flashcards or Quizlet sets."
             ]
         },
         {
@@ -455,27 +453,27 @@ LESSONS = {
                 "Review of time expressions."
             ],
             "practice": [
-                "Hablar de una excursión o viaje reciente.",
-                "Role-play: contar tu día libre perfecto."
+                "Talk about a recent excursion or trip.",
+                "Role play: describing your perfect day off."
             ],
             "insights": [
-                "Ideal para hablar de experiencias turísticas con clientes.",
-                "Usa fotos reales de excursiones que has guiado."
+                "Excellent topic for tourism and weekend activities.",
+                "Use real photos from your tours when possible."
             ]
         },
         {
             "title": "Class 3 – Leisure texts",
             "theory": [
-                "Identificar idea general y detalles en textos sencillos.",
-                "Conectores básicos para narrar."
+                "Finding main ideas and details in short texts.",
+                "Simple linkers for narratives."
             ],
             "practice": [
-                "Leer un texto corto sobre tiempo libre y responder preguntas.",
-                "Escribir un mini blog entry de fin de semana."
+                "Read a short text about free time and answer questions.",
+                "Write a mini blog entry about your weekend."
             ],
             "insights": [
-                "Leer en voz alta ayuda a fijar estructuras.",
-                "Combinar lectura y escritura acelera el progreso."
+                "Reading aloud helps you internalise grammar and rhythm.",
+                "Combining reading and writing accelerates your progress."
             ]
         }
     ],
@@ -484,45 +482,45 @@ LESSONS = {
             "title": "Class 1 – Jobs & routines",
             "theory": [
                 "Job vocabulary.",
-                "Present simple vs present continuous (uso básico)."
+                "Present simple vs present continuous (basic contrast)."
             ],
             "practice": [
-                "Describir tu trabajo actual o ideal.",
-                "Juego: adivinar la profesión."
+                "Describe your current job or dream job.",
+                "Guess-the-job game."
             ],
             "insights": [
-                "Conecta vocabulario laboral con tu realidad (guía, hotel, agencia...).",
-                "Practica describir lo que haces durante un día de trabajo típico."
+                "Connect work vocabulary to your real context (guide, hotel, agency, etc.).",
+                "Practise describing a typical workday in simple English."
             ]
         },
         {
             "title": "Class 2 – Comparisons",
             "theory": [
-                "Comparative adjectives: *bigger, more interesting, cheaper*.",
-                "Than + noun."
+                "Comparative adjectives: bigger, more interesting, cheaper, etc.",
+                "Structure: X is more/-er than Y."
             ],
             "practice": [
-                "Comparar ciudades, lugares turísticos o trabajos.",
-                "Encuesta: *Which is better…?*"
+                "Compare cities, tourist destinations or jobs.",
+                "Survey: “Which is better…?” and class discussion."
             ],
             "insights": [
-                "Genial para comparar destinos en ventas turísticas.",
-                "Aprende bien el patrón: *X is more ... than Y*."
+                "Very useful when you recommend destinations or services.",
+                "Master the pattern “X is more … than Y”."
             ]
         },
         {
             "title": "Class 3 – Work profile",
             "theory": [
-                "Structura básica de un perfil profesional.",
+                "Basic structure of a professional profile.",
                 "Review of present tenses."
             ],
             "practice": [
-                "Escribir tu mini CV en inglés (versión simple).",
-                "Presentarte oralmente como profesional."
+                "Write a simple mini-CV in English.",
+                "Introduce yourself professionally to the group."
             ],
             "insights": [
-                "Te sirve directamente para LinkedIn o presentaciones con clientes.",
-                "Mantén frases cortas pero claras."
+                "You can reuse this text for LinkedIn or your website.",
+                "Short, clear sentences are very effective at A2 level."
             ]
         }
     ],
@@ -530,46 +528,46 @@ LESSONS = {
         {
             "title": "Class 1 – Travel plans",
             "theory": [
-                "Going to for plans.",
-                "Expressions for future time (next week, this weekend...)."
+                "Going to for future plans.",
+                "Future time expressions (next week, this weekend, in July, etc.)."
             ],
             "practice": [
-                "Hablar de planes de viaje.",
-                "Planear un viaje en parejas (destino, transporte, actividades)."
+                "Talk about your next holiday or trip.",
+                "Plan a trip in pairs (destination, transport, activities)."
             ],
             "insights": [
-                "Muy útil para explicar itinerarios a turistas.",
-                "Piensa en viajes reales que ofreces con Bioventura."
+                "Ideal language for explaining itineraries to tourists.",
+                "Use real tours or packages you offer when you practise."
             ]
         },
         {
             "title": "Class 2 – At the airport / station",
             "theory": [
                 "Common travel questions and answers.",
-                "Vocabulary: ticket, boarding pass, platform, gate..."
+                "Key vocabulary: ticket, boarding pass, platform, gate, delay, etc."
             ],
             "practice": [
-                "Role-play en aeropuerto/estación.",
-                "Escuchar anuncios ficticios y completar información."
+                "Role play at an airport or station.",
+                "Listen to short announcements (teacher-made) and complete information."
             ],
             "insights": [
-                "Estos diálogos son excelentes para turismo internacional.",
-                "Puedes grabar audios propios para practicar listening."
+                "These dialogues are great for international travellers.",
+                "You can record simple audios yourself for extra listening practice."
             ]
         },
         {
             "title": "Class 3 – Travel blog",
             "theory": [
-                "Paragraph structure for narratives.",
+                "Paragraph structure for travel stories.",
                 "Linkers: first, then, after that, finally."
             ],
             "practice": [
-                "Leer una entrada de blog de viajes sencilla.",
-                "Escribir sobre tu viaje favorito."
+                "Read a short travel blog and answer questions.",
+                "Write about your favourite trip using linkers."
             ],
             "insights": [
-                "Perfecto para contenido de redes o blogs de agencia.",
-                "Piensa en un tour real y conviértelo en historia."
+                "Perfect for social media or agency blog content.",
+                "Think of a real tour and turn it into a short story."
             ]
         }
     ],
@@ -577,46 +575,46 @@ LESSONS = {
         {
             "title": "Class 1 – Parts of the body",
             "theory": [
-                "Body vocabulary.",
-                "Have got (uso básico) si lo necesitas."
+                "Body vocabulary (head, arm, back, knee, etc.).",
+                "Useful structures for pain: “My back hurts”, “I have a headache”."
             ],
             "practice": [
-                "Juegos de señalar partes del cuerpo.",
-                "Describir dolores: *My back hurts.*"
+                "Point-and-say games with body parts.",
+                "Mini dialogues about simple injuries."
             ],
             "insights": [
-                "Útil para emergencias con turistas.",
-                "Practica frases clave como *Do you need a doctor?*"
+                "Very useful in emergency situations with tourists.",
+                "Memorise a few key phrases like “Do you need a doctor?”."
             ]
         },
         {
             "title": "Class 2 – Health problems",
             "theory": [
                 "Should / shouldn’t for advice.",
-                "Common health problems vocabulary."
+                "Common health problems vocabulary (cold, fever, stomach ache, etc.)."
             ],
             "practice": [
-                "Role-play médico/paciente.",
-                "Dar consejos a partir de síntomas."
+                "Doctor / patient role plays.",
+                "Give advice based on short symptom cards."
             ],
             "insights": [
-                "Ten siempre algunas frases de emergencia memorizadas.",
-                "La cortesía y calma son parte del lenguaje también."
+                "Tone of voice and calm body language are part of communication too.",
+                "Keep your advice simple and clear at this level."
             ]
         },
         {
             "title": "Class 3 – Healthy lifestyle",
             "theory": [
                 "Review of advice and habits.",
-                "Frequency expressions in lifestyle."
+                "Frequency expressions in lifestyle (once a week, every day, etc.)."
             ],
             "practice": [
-                "Escribir recomendaciones para una vida saludable.",
-                "Debate simple: *What is healthy / unhealthy?*"
+                "Write recommendations for a healthy lifestyle.",
+                "Simple debate: “What is healthy / unhealthy for you?”."
             ],
             "insights": [
-                "Tema que conecta muy bien con cualquier grupo.",
-                "Combina vocabulario de comida, rutinas y salud."
+                "This topic connects well with almost every group.",
+                "Combine food, routines and health vocabulary in the same lesson."
             ]
         }
     ],
@@ -625,143 +623,184 @@ LESSONS = {
             "title": "Class 1 – Countries & continents",
             "theory": [
                 "Country and continent vocabulary.",
-                "Question: *Have you ever been to…?* (introducción ligera al present perfect)."
+                "Question: “Have you ever been to…?” (light introduction to present perfect)."
             ],
             "practice": [
-                "Mapa del mundo: marcar países visitados o que quieres visitar.",
-                "Preguntas en parejas sobre viajes."
+                "World map activity: mark countries you have visited or want to visit.",
+                "Pair questions about travel experience."
             ],
             "insights": [
-                "No necesitas dominar el present perfect, solo usarlo en frases clave.",
-                "Enfócate en escucharlo y producirlo en estructuras cortas."
+                "You don’t need to master the whole present perfect, just key phrases.",
+                "Focus on understanding and using short, fixed patterns first."
             ]
         },
         {
             "title": "Class 2 – World cultures",
             "theory": [
-                "Adjetivos para culturas y lugares (interesting, diverse, ancient...).",
-                "Review of past and present."
+                "Adjectives for cultures and places (interesting, diverse, ancient, modern, etc.).",
+                "Review of present and past for cultural facts."
             ],
             "practice": [
-                "Hablar de una cultura que admires.",
-                "Comparar tradiciones entre países."
+                "Talk about a culture you admire.",
+                "Compare traditions between two countries."
             ],
             "insights": [
-                "Conecta esta clase con tu pasión por culturas originarias.",
-                "Perfecto para preparar contenido de tours culturales."
+                "Connect this lesson with your passion for indigenous and local cultures.",
+                "Excellent material for cultural tourism and storytelling."
             ]
         },
         {
             "title": "Class 3 – My country",
             "theory": [
-                "Paragraph structure for descriptions of a country.",
-                "Review of key A2 grammar."
+                "Paragraph structure for country descriptions.",
+                "Global review of key A2 grammar in context."
             ],
             "practice": [
-                "Escribir un texto sobre México para extranjeros.",
-                "Presentación oral tipo mini-tour del país."
+                "Write a short text about Mexico for foreign visitors.",
+                "Give a mini-tour style presentation of your country."
             ],
             "insights": [
-                "Este texto puede servir para tu web, folletos o guiones.",
-                "Cierra el curso mostrando todo lo que ya puedes decir en inglés."
+                "This text can later be used on your website, brochures or tour scripts.",
+                "It is a powerful way to show students how much English they can use at A2."
             ]
         }
     ]
 }
 
 # ==========================
-# LOGO Y FIRMA
+# LOGO & SIGNATURE (TOP + INSTRUCTOR PAGE)
 # ==========================
 
 def show_logo():
-    """Show logo in the sidebar if available."""
+    """Show logo at the top if available."""
     logo_path = os.path.join("assets", "logo-english-classes.png")
     if os.path.exists(logo_path):
         try:
-            st.sidebar.image(logo_path, use_column_width=True)
+            cols = st.columns([1, 3])
+            with cols[0]:
+                st.image(logo_path, use_column_width=True)
+            with cols[1]:
+                st.markdown(" ")  # spacer
         except Exception:
-            st.sidebar.warning("El archivo 'logo-english-classes.png' no es una imagen válida.")
+            st.warning("The file 'logo-english-classes.png' exists but is not a valid image.")
     else:
-        st.sidebar.info("Coloca el archivo 'logo-english-classes.png' en la carpeta /assets.")
+        st.info("Add your logo as 'assets/logo-english-classes.png' to display it here.")
 
 def show_signature():
-    """Show signature at the bottom if available."""
+    """Show signature on instructor page if available."""
     sig_path = os.path.join("assets", "firma-ivan-diaz.png")
     if os.path.exists(sig_path):
         try:
             st.image(sig_path, width=220)
         except Exception:
-            st.warning("El archivo 'firma-ivan-diaz.png' no es una imagen válida.")
+            st.warning("The file 'firma-ivan-diaz.png' exists but is not a valid image.")
     else:
-        st.info("Coloca el archivo 'firma-ivan-diaz.png' en la carpeta /assets para mostrar tu firma.")
+        st.info("Add your signature as 'assets/firma-ivan-diaz.png' to display it here.")
 
 # ==========================
-# PÁGINAS
+# PAGES
 # ==========================
 
 def overview_page():
-    st.title("📘 A2 English Master – Course Overview")
-    st.subheader(COURSE_INFO["level"])
+    st.title("📘 A2 English Master – Elementary Course")
 
-    col1, col2 = st.columns([2, 1])
+    st.markdown(
+        """
+### Learn to communicate with confidence in real situations
+
+This A2 English program is designed for learners who want *clear progress*, 
+practical language and a professional learning experience.
+
+**With this course your students will:**
+- Speak about their life, work, studies and travel plans in clear, simple English.  
+- Understand real conversations at normal speed in common situations.  
+- Write short emails, messages and descriptions with correct grammar.  
+- Build a solid base to move confidently to **B1 – Intermediate**.
+        """
+    )
+
+    col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.markdown(f"**Course title:** {COURSE_INFO['title']}")
-        st.markdown(f"**Number of units:** {COURSE_INFO['units']}")
-        st.markdown(f"**Total hours:** {COURSE_INFO['total_hours']}")
-        st.markdown("### Description")
-        st.write(COURSE_INFO["description"])
+        st.subheader("🎯 For whom?")
+        st.write(
+            "- Adults and young adults\n"
+            "- Tourism, service and business professionals\n"
+            "- Learners who finished A1 and want the next step"
+        )
 
     with col2:
-        st.markdown("### Target students")
-        st.write(COURSE_INFO["target_students"])
+        st.subheader("📚 What’s inside?")
+        st.write(
+            "- 10 carefully structured units\n"
+            "- Clear grammar and vocabulary focus\n"
+            "- Step-by-step lessons with theory, practice and insights\n"
+            "- Progress checks and final assessment"
+        )
 
-    st.markdown("### General objectives")
-    for obj in COURSE_INFO["general_objectives"]:
-        st.markdown(f"- {obj}")
+    with col3:
+        st.subheader("🌍 Why this course?")
+        st.write(
+            "- Based on Cambridge Empower A2 (Second Edition)\n"
+            "- Strong focus on speaking and listening\n"
+            "- Real-world topics: travel, work, culture and health\n"
+            "- Designed by Iván Díaz, Tourist Guide & English Instructor"
+        )
 
-    st.markdown("### Methodology")
-    for item in COURSE_INFO["methodology"]:
-        st.markdown(f"- {item}")
+    st.markdown("---")
+    st.markdown("#### Quick course facts")
+    facts_df = pd.DataFrame(
+        [
+            ["Level", COURSE_INFO["level"]],
+            ["Total units", COURSE_INFO["units"]],
+            ["Suggested total hours", COURSE_INFO["total_hours"]],
+            ["Hours per unit (average)", COURSE_INFO["hours_per_unit"]],
+        ],
+        columns=["Item", "Details"],
+    )
+    st.table(facts_df)
 
-    st.markdown("### Assessment")
-    for item in COURSE_INFO["assessment"]:
-        st.markdown(f"- {item}")
-
+    with st.expander("View Spanish summary / Ver resumen en español"):
+        st.write(
+            """
+Este curso A2 está pensado para que los estudiantes hablen de su vida diaria, trabajo y viajes 
+en un inglés claro y funcional. Integra el libro Cambridge Empower A2 y lo adapta a contextos 
+reales, especialmente útiles para turismo y servicios.
+            """
+        )
 
 def levels_page():
     st.title("🎯 English Levels (CEFR)")
-    st.markdown("Esta app trabaja el nivel **A2 – Elementary**, dentro del marco **CEFR (Common European Framework of Reference for Languages)**.")
 
     data = [
-        ["A1", "Beginner", "Puede usar expresiones cotidianas muy básicas, presentarse y hacer preguntas simples."],
-        ["A2", "Elementary", "Puede hablar de rutina diaria, familia, trabajo sencillo, compras y situaciones inmediatas."],
-        ["B1", "Intermediate", "Puede manejar la mayoría de situaciones en viajes, describir experiencias y opiniones simples."],
-        ["B2", "Upper-Intermediate", "Puede interactuar con fluidez razonable, entender ideas principales de textos complejos."],
-        ["C1", "Advanced", "Puede expresarse con soltura y flexibilidad en contextos académicos y profesionales."],
-        ["C2", "Proficiency", "Tiene un dominio del idioma similar al de un hablante nativo culto."]
+        ["A1", "Beginner", "Can use very basic everyday expressions, introduce themselves and ask/answer simple questions."],
+        ["A2", "Elementary", "Can talk about daily routines, family, simple work, shopping and immediate needs in simple terms."],
+        ["B1", "Intermediate", "Can deal with most situations while travelling, describe experiences and give simple opinions."],
+        ["B2", "Upper-Intermediate", "Can interact with a good degree of fluency and understand the main ideas of complex texts."],
+        ["C1", "Advanced", "Can express ideas fluently and spontaneously for academic and professional purposes."],
+        ["C2", "Proficiency", "Can understand practically everything and express themselves with precision in almost any context."]
     ]
     df = pd.DataFrame(data, columns=["Level", "Name", "Description"])
     st.table(df)
 
     st.markdown("---")
-    st.markdown("### 📌 ¿Dónde se ubica este curso?")
+    st.markdown("### 🟦 Where does this course fit?")
     st.success(
-        "Este programa corresponde al nivel **A2 – Elementary**.\n\n"
-        "- Consolida estructuras básicas de A1.\n"
-        "- Amplía vocabulario para la vida diaria, trabajo sencillo y viajes.\n"
-        "- Prepara al estudiante para avanzar a **B1 – Intermediate**."
+        "This program corresponds to **A2 – Elementary**.\n\n"
+        "- It consolidates basic A1 structures.\n"
+        "- It expands vocabulary for daily life, work and travel.\n"
+        "- It prepares learners to move into **B1 – Intermediate** with confidence."
     )
-
 
 def syllabus_page():
     st.title("📚 Syllabus by Unit")
+
     unit_names = [f"Unit {u['number']}: {u['name']}" for u in UNITS]
     selected = st.selectbox("Select a unit", unit_names)
     unit = UNITS[unit_names.index(selected)]
 
     st.markdown(f"## Unit {unit['number']} – {unit['name']}")
-    st.markdown(f"**Focus:** {unit['focus']}")
+    st.markdown(f"**Main focus:** {unit['focus']}")
 
     col1, col2 = st.columns(2)
 
@@ -782,71 +821,70 @@ def syllabus_page():
                 st.markdown(f"- {item}")
 
     st.markdown("---")
-    st.markdown("### Suggested time distribution")
+    st.markdown("### Suggested time distribution per unit")
     df = pd.DataFrame(
         [
             ["Warm-up & presentation", 30],
             ["Grammar & vocabulary input", 60],
             ["Controlled practice", 60],
             ["Communication tasks", 60],
-            ["Review & assessment", 30],
+            ["Review & mini-assessment", 30],
         ],
         columns=["Stage", "Minutes"]
     )
     st.table(df)
 
-
 def lessons_page():
-    st.title("📖 Entra a tu clase")
+    st.title("📖 Enter your class")
 
     unit_options = [f"Unit {u['number']} – {u['name']}" for u in UNITS]
-    unit_choice = st.selectbox("Selecciona tu unidad", unit_options)
+    unit_choice = st.selectbox("Choose your unit", unit_options)
     unit_number = UNITS[unit_options.index(unit_choice)]["number"]
 
     lessons = LESSONS.get(unit_number, [])
     lesson_titles = [l["title"] for l in lessons]
-    lesson_choice = st.selectbox("Selecciona tu clase", lesson_titles)
+    lesson_choice = st.selectbox("Choose your lesson", lesson_titles)
 
     lesson = next(l for l in lessons if l["title"] == lesson_choice)
 
     st.markdown(f"## {lesson['title']}")
-    st.caption(f"Unidad {unit_number} – {UNITS[unit_number-1]['name']}")
+    st.caption(f"Unit {unit_number} – {UNITS[unit_number - 1]['name']}")
 
-    tab_theory, tab_practice, tab_insights = st.tabs(["📘 Teoría", "📝 Práctica", "💡 Insights"])
+    tab_theory, tab_practice, tab_insights = st.tabs(["📘 Theory", "📝 Practice", "💡 Insights"])
 
     with tab_theory:
-        st.markdown("### Contenidos teóricos")
+        st.markdown("### Key theory")
         for item in lesson["theory"]:
             st.markdown(f"- {item}")
 
     with tab_practice:
-        st.markdown("### Actividades sugeridas")
+        st.markdown("### Suggested activities")
         for item in lesson["practice"]:
             st.markdown(f"- {item}")
-        st.info("Puedes adaptar estas actividades a modalidad presencial, online o trabajo autónomo.")
+        st.info("You can adapt these activities to face-to-face classes, online sessions or autonomous work.")
 
     with tab_insights:
-        st.markdown("### Tips e insights")
+        st.markdown("### Teaching & learning insights")
         for item in lesson["insights"]:
             st.markdown(f"- {item}")
-        st.success("Añade aquí tus propios comentarios, ejemplos o anécdotas para cada grupo.")
+        st.success("Use this space to add your own notes, examples or anecdotes for each group.")
 
 def assessment_page():
     st.title("📝 Assessment & Progress")
 
-    st.markdown("### Assessment Structure")
+    st.markdown("### Assessment structure")
     st.markdown(
         """
-- Unit progress checks every 2 units  
-- Mid-course assessment (after Unit 5): listening, reading, writing & speaking  
-- Final exam (after Unit 10): full integrated assessment  
+- Unit progress checks every **two units**  
+- **Mid-course assessment** (after Unit 5): listening, reading, writing & speaking  
+- **Final exam** (after Unit 10): full integrated assessment  
 """
     )
 
-    st.markdown("### Weighting")
+    st.markdown("### Suggested weighting")
     df = pd.DataFrame(
         [
-            ["Class participation", "20%"],
+            ["Class participation & homework", "20%"],
             ["Progress checks", "30%"],
             ["Mid-course test", "20%"],
             ["Final exam", "30%"],
@@ -855,21 +893,64 @@ def assessment_page():
     )
     st.table(df)
 
-
-def teacher_page():
-    st.title("👨‍🏫 About the Instructor")
+def instructor_page():
+    st.title("👨‍🏫 Instructor")
 
     st.markdown(
         """
 **Instructor:** Iván de Jesús Díaz Navarro  
-**Profession:** Tourist Guide & English Instructor  
+**Profile:** Certified Tourist Guide & English Instructor  
 
-This A2 English program integrates a communicative approach with real-life scenarios for students who need English for travel, work, and personal development.
-"""
+This A2 English Master program connects communicative English teaching with real-life 
+contexts, especially tourism, culture and professional interaction.  
+
+Learners not only study grammar and vocabulary – they practise situations they can 
+actually experience in their daily life and work.
+        """
     )
 
     st.markdown("### Signature")
     show_signature()
+
+# ==========================
+# BOTTOM NAVIGATION (MOBILE FRIENDLY)
+# ==========================
+
+PAGES = [
+    "Overview",
+    "English Levels",
+    "Assessment & Progress",
+    "Instructor",
+    "Enter your class",
+]
+
+def render_page(page_name: str):
+    if page_name == "Overview":
+        overview_page()
+    elif page_name == "English Levels":
+        levels_page()
+    elif page_name == "Assessment & Progress":
+        assessment_page()
+    elif page_name == "Instructor":
+        instructor_page()
+    elif page_name == "Enter your class":
+        lessons_page()
+
+def bottom_nav():
+    st.markdown("---")
+    st.markdown("#### Navigation")
+
+    cols = st.columns(len(PAGES))
+    for i, name in enumerate(PAGES):
+        label = name
+        if "page" not in st.session_state:
+            st.session_state["page"] = "Overview"
+
+        is_current = (st.session_state["page"] == name)
+        btn_label = f"**{label}**" if is_current else label
+
+        if cols[i].button(btn_label, use_container_width=True, key=f"nav_{name}"):
+            st.session_state["page"] = name
 
 # ==========================
 # MAIN
@@ -878,32 +959,15 @@ This A2 English program integrates a communicative approach with real-life scena
 def main():
     show_logo()
 
-    st.sidebar.title("Menu")
-    page = st.sidebar.radio(
-        "Navigate",
-        (
-            "Overview",
-            "English Levels",
-            "Syllabus by Unit",
-            "Entra a tu clase",
-            "Assessment & Progress",
-            "Instructor"
-        )
-    )
+    # Set default page
+    if "page" not in st.session_state:
+        st.session_state["page"] = "Overview"
 
-    if page == "Overview":
-        overview_page()
-    elif page == "English Levels":
-        levels_page()
-    elif page == "Syllabus by Unit":
-        syllabus_page()
-    elif page == "Entra a tu clase":
-        lessons_page()
-    elif page == "Assessment & Progress":
-        assessment_page()
-    elif page == "Instructor":
-        teacher_page()
+    # Render current page
+    render_page(st.session_state["page"])
 
+    # Render bottom navigation
+    bottom_nav()
 
 if __name__ == "__main__":
     main()
