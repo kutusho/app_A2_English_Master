@@ -757,7 +757,7 @@ def go_to_page(page_id: str):
     _rerun()
 
 def render_floating_menu(current_page_id: str):
-    """Render a fixed floating menu in the top-left corner."""
+    """Render a fixed floating menu in the top-left corner, clearly visible."""
     items_html = []
     for page in PAGES:
         page_id = page["id"]
@@ -774,7 +774,8 @@ def render_floating_menu(current_page_id: str):
     <style>
     .floating-menu-wrapper {{
         position: fixed;
-        top: 1.5rem;
+        /* Lo bajamos más para que no se recorte con el header de Streamlit */
+        top: 4.5rem;
         left: 1.5rem;
         z-index: 2000;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -788,16 +789,17 @@ def render_floating_menu(current_page_id: str):
         background: linear-gradient(135deg, #1f4b99, #274b8f);
         color: #ffffff;
         border-radius: 999px;
-        padding: 0.55rem 1.3rem;
+        padding: 0.55rem 1.4rem;
         font-size: 0.95rem;
         font-weight: 600;
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
         cursor: pointer;
         display: inline-flex;
         align-items: center;
-        gap: 0.4rem;
+        gap: 0.45rem;
         border: none;
         user-select: none;
+        white-space: nowrap;
     }}
 
     .floating-menu-button:hover {{
@@ -859,11 +861,11 @@ def render_floating_menu(current_page_id: str):
     /* Small screens */
     @media (max-width: 600px) {{
         .floating-menu-wrapper {{
-            top: 1rem;
+            top: 4rem;
             left: 1rem;
         }}
         .floating-menu-button {{
-            padding: 0.45rem 1rem;
+            padding: 0.45rem 1.1rem;
             font-size: 0.9rem;
         }}
         .floating-menu-panel {{
@@ -874,7 +876,9 @@ def render_floating_menu(current_page_id: str):
 
     <div class="floating-menu-wrapper">
         <input type="checkbox" id="floating-menu-toggle" class="floating-menu-toggle" />
-        <label for="floating-menu-toggle" class="floating-menu-button">☰ Menu</label>
+        <label for="floating-menu-toggle" class="floating-menu-button">
+            ☰ Menu
+        </label>
         <div class="floating-menu-panel">
             <div class="floating-menu-header">Navigate</div>
             {''.join(items_html)}
@@ -883,7 +887,6 @@ def render_floating_menu(current_page_id: str):
     """
 
     st.markdown(menu_html, unsafe_allow_html=True)
-
 
 # ==========================
 # PAGES
