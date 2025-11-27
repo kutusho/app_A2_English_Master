@@ -12,6 +12,215 @@ st.set_page_config(
 )
 
 # ==========================
+# GLOBAL STYLES (BRANDING / BACKGROUND)
+# ==========================
+
+def inject_global_css():
+    st.markdown(
+        """
+    <style>
+    :root {
+      --bg-main: #f5f7fb;
+      --navy: #111827;
+      --navy-soft: #1f3b70;
+      --purple: #6d28d9;
+      --blue: #2563eb;
+      --cyan: #06b6d4;
+      --card-bg: #ffffff;
+    }
+
+    /* Reset básico */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg-main);
+      color: var(--navy);
+    }
+
+    .stApp {
+      background: radial-gradient(circle at top left, #ffffff 0%, #f5f7fb 45%, #e5edff 100%);
+      position: relative;
+      min-height: 100vh;
+    }
+
+    /* Ondas inferiores estilo certificado */
+    .stApp::before,
+    .stApp::after {
+      content: "";
+      position: fixed;
+      bottom: -140px;
+      width: 140%;
+      height: 260px;
+      border-radius: 50%;
+      z-index: -1;
+      opacity: 0.9;
+      left: -10%;
+    }
+
+    .stApp::before {
+      background: linear-gradient(
+        110deg,
+        rgba(109, 40, 217, 0.9) 0%,
+        rgba(37, 99, 235, 0.9) 40%,
+        rgba(6, 182, 212, 0.9) 100%
+      );
+      filter: blur(1px);
+    }
+
+    .stApp::after {
+      transform: translateY(40px);
+      background: linear-gradient(
+        120deg,
+        rgba(255, 255, 255, 0.7) 0%,
+        rgba(229, 242, 255, 0.9) 50%,
+        rgba(186, 230, 253, 0.9) 100%
+      );
+      opacity: 0.95;
+    }
+
+    /* Tarjeta central de la app */
+    .app-card {
+      position: relative;
+      max-width: 1100px;
+      margin: 2.5rem auto 2rem;
+      padding: 2.2rem 2.4rem 2rem;
+      border-radius: 24px;
+      background: var(--card-bg);
+      box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+      border: 1px solid rgba(15, 23, 42, 0.06);
+    }
+
+    .app-card::before {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      pointer-events: none;
+    }
+
+    /* Ajuste del contenido interno para no chocar con el borde decorativo */
+    .app-card-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Floating menu top-left */
+    .floating-menu-wrapper {
+        position: fixed;
+        top: 4.5rem;
+        left: 1.5rem;
+        z-index: 2000;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .floating-menu-toggle {
+        display: none;
+    }
+
+    .floating-menu-button {
+        background: linear-gradient(135deg, #1f4b99, #274b8f);
+        color: #ffffff;
+        border-radius: 999px;
+        padding: 0.55rem 1.4rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        border: none;
+        user-select: none;
+        white-space: nowrap;
+    }
+
+    .floating-menu-button:hover {
+        filter: brightness(1.05);
+    }
+
+    .floating-menu-panel {
+        position: absolute;
+        top: 3.1rem;
+        left: 0;
+        background-color: #ffffff;
+        border-radius: 0.9rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        padding: 0.6rem;
+        min-width: 220px;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-10px);
+        transition: all 0.18s ease-out;
+    }
+
+    .floating-menu-header {
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #555;
+        margin-bottom: 0.4rem;
+        padding: 0 0.2rem;
+    }
+
+    .menu-link {
+        display: block;
+        padding: 0.4rem 0.5rem;
+        border-radius: 0.55rem;
+        text-decoration: none;
+        font-size: 0.9rem;
+        color: #222;
+        margin-bottom: 0.15rem;
+    }
+
+    .menu-link:hover {
+        background-color: #f1f4fb;
+    }
+
+    .menu-link.active {
+        background-color: #1f4b99;
+        color: #ffffff;
+        font-weight: 600;
+    }
+
+    .floating-menu-toggle:checked ~ .floating-menu-panel {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+    }
+
+    @media (max-width: 900px) {
+      .app-card {
+        margin: 1.5rem 0.75rem 1.5rem;
+        padding: 1.6rem 1.4rem 1.4rem;
+      }
+      .app-card::before {
+        inset: 10px;
+      }
+    }
+
+    @media (max-width: 600px) {
+        .floating-menu-wrapper {
+            top: 4rem;
+            left: 1rem;
+        }
+        .floating-menu-button {
+            padding: 0.45rem 1.1rem;
+            font-size: 0.9rem;
+        }
+        .floating-menu-panel {
+            min-width: 200px;
+        }
+    }
+    </style>
+    """,
+        unsafe_allow_html=True,
+    )
+
+# ==========================
 # COURSE DATA
 # ==========================
 
@@ -676,11 +885,11 @@ def show_logo():
     logo_path = os.path.join("assets", "logo-english-classes.png")
     if os.path.exists(logo_path):
         try:
-            cols = st.columns([1, 3])
+            cols = st.columns([1, 4])
             with cols[0]:
                 st.image(logo_path, use_column_width=True)
             with cols[1]:
-                st.markdown(" ")  # spacer
+                st.markdown(" ")
         except Exception:
             st.warning("The file 'logo-english-classes.png' exists but is not a valid image.")
     else:
@@ -712,48 +921,35 @@ PAGES = [
 def _get_query_params():
     """Safe wrapper to get query params for different Streamlit versions."""
     try:
-        # Newer versions
         params = dict(st.query_params)
     except Exception:
-        # Older experimental API
         params = st.experimental_get_query_params()
     return params
 
 def get_current_page_id() -> str:
-    """Read current page from URL query params (?page=...)."""
     params = _get_query_params()
     page = params.get("page")
-
-    # page may be a list (old API) or a string (new API)
     if isinstance(page, list):
         page = page[0] if page else None
-
     valid_ids = [p["id"] for p in PAGES]
-
     if not page or page not in valid_ids:
         return "Overview"
     return page
 
 def _rerun():
-    """Compatibility wrapper for rerun."""
     try:
         st.rerun()
     except Exception:
         st.experimental_rerun()
 
 def go_to_page(page_id: str):
-    """Programmatically navigate to a page by updating query params."""
     valid_ids = [p["id"] for p in PAGES]
     if page_id not in valid_ids:
         page_id = "Overview"
-
     try:
-        # New-style API
         st.query_params["page"] = page_id
     except Exception:
-        # Older API
         st.experimental_set_query_params(page=page_id)
-
     _rerun()
 
 def render_floating_menu(current_page_id: str):
@@ -771,109 +967,6 @@ def render_floating_menu(current_page_id: str):
         )
 
     menu_html = f"""
-    <style>
-    .floating-menu-wrapper {{
-        position: fixed;
-        /* Lo bajamos más para que no se recorte con el header de Streamlit */
-        top: 4.5rem;
-        left: 1.5rem;
-        z-index: 2000;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }}
-
-    .floating-menu-toggle {{
-        display: none;
-    }}
-
-    .floating-menu-button {{
-        background: linear-gradient(135deg, #1f4b99, #274b8f);
-        color: #ffffff;
-        border-radius: 999px;
-        padding: 0.55rem 1.4rem;
-        font-size: 0.95rem;
-        font-weight: 600;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.45rem;
-        border: none;
-        user-select: none;
-        white-space: nowrap;
-    }}
-
-    .floating-menu-button:hover {{
-        filter: brightness(1.05);
-    }}
-
-    .floating-menu-panel {{
-        position: absolute;
-        top: 3.1rem;
-        left: 0;
-        background-color: #ffffff;
-        border-radius: 0.9rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-        padding: 0.6rem;
-        min-width: 220px;
-        opacity: 0;
-        pointer-events: none;
-        transform: translateY(-10px);
-        transition: all 0.18s ease-out;
-    }}
-
-    .floating-menu-header {{
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #555;
-        margin-bottom: 0.4rem;
-        padding: 0 0.2rem;
-    }}
-
-    .menu-link {{
-        display: block;
-        padding: 0.4rem 0.5rem;
-        border-radius: 0.55rem;
-        text-decoration: none;
-        font-size: 0.9rem;
-        color: #222;
-        margin-bottom: 0.15rem;
-    }}
-
-    .menu-link:hover {{
-        background-color: #f1f4fb;
-    }}
-
-    .menu-link.active {{
-        background-color: #1f4b99;
-        color: #ffffff;
-        font-weight: 600;
-    }}
-
-    /* Toggle behaviour */
-    .floating-menu-toggle:checked ~ .floating-menu-panel {{
-        opacity: 1;
-        pointer-events: auto;
-        transform: translateY(0);
-    }}
-
-    /* Small screens */
-    @media (max-width: 600px) {{
-        .floating-menu-wrapper {{
-            top: 4rem;
-            left: 1rem;
-        }}
-        .floating-menu-button {{
-            padding: 0.45rem 1.1rem;
-            font-size: 0.9rem;
-        }}
-        .floating-menu-panel {{
-            min-width: 200px;
-        }}
-    }}
-    </style>
-
     <div class="floating-menu-wrapper">
         <input type="checkbox" id="floating-menu-toggle" class="floating-menu-toggle" />
         <label for="floating-menu-toggle" class="floating-menu-button">
@@ -885,7 +978,6 @@ def render_floating_menu(current_page_id: str):
         </div>
     </div>
     """
-
     st.markdown(menu_html, unsafe_allow_html=True)
 
 # ==========================
@@ -987,48 +1079,6 @@ def levels_page():
         "- It prepares learners to move into **B1 – Intermediate** with confidence."
     )
 
-def syllabus_page():
-    st.title("📚 Syllabus by Unit")
-
-    unit_names = [f"Unit {u['number']}: {u['name']}" for u in UNITS]
-    selected = st.selectbox("Select a unit", unit_names)
-    unit = UNITS[unit_names.index(selected)]
-
-    st.markdown(f"## Unit {unit['number']} – {unit['name']}")
-    st.markdown(f"**Main focus:** {unit['focus']}")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.markdown("### Grammar")
-        for g in unit["grammar"]:
-            st.markdown(f"- {g}")
-
-        st.markdown("### Vocabulary")
-        for v in unit["vocabulary"]:
-            st.markdown(f"- {v}")
-
-    with col2:
-        st.markdown("### Skills")
-        for skill, items in unit["skills"].items():
-            st.markdown(f"**{skill.capitalize()}**")
-            for item in items:
-                st.markdown(f"- {item}")
-
-    st.markdown("---")
-    st.markdown("### Suggested time distribution per unit")
-    df = pd.DataFrame(
-        [
-            ["Warm-up & presentation", 30],
-            ["Grammar & vocabulary input", 60],
-            ["Controlled practice", 60],
-            ["Communication tasks", 60],
-            ["Review & mini-assessment", 30],
-        ],
-        columns=["Stage", "Minutes"]
-    )
-    st.table(df)
-
 def lessons_page():
     st.title("📖 Enter your class")
 
@@ -1116,6 +1166,10 @@ actually experience in their daily life and work.
 # ==========================
 
 def render_page(page_id: str):
+    # Tarjeta central con el branding
+    st.markdown('<div class="app-card"><div class="app-card-inner">', unsafe_allow_html=True)
+    show_logo()
+
     if page_id == "Overview":
         overview_page()
     elif page_id == "English Levels":
@@ -1129,17 +1183,16 @@ def render_page(page_id: str):
     else:
         overview_page()
 
+    st.markdown('</div></div>', unsafe_allow_html=True)
+
 # ==========================
 # MAIN
 # ==========================
 
 def main():
-    show_logo()
-
+    inject_global_css()
     current_page = get_current_page_id()
     render_page(current_page)
-
-    # Floating fixed menu bottom-right
     render_floating_menu(current_page)
 
 if __name__ == "__main__":
