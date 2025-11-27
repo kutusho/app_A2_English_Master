@@ -340,7 +340,7 @@ UNITS = [
 
 
 def show_logo():
-    \"\"\"Show logo in the sidebar if available.\"\"\"
+    """Show logo in the sidebar if available."""
     import os
     logo_path = os.path.join("assets", "logo.png")
     if os.path.exists(logo_path):
@@ -350,7 +350,7 @@ def show_logo():
 
 
 def show_signature():
-    \"\"\"Show signature at the bottom if available.\"\"\"
+    """Show signature at the bottom if available."""
     import os
     sig_path = os.path.join("assets", "signature.png")
     if os.path.exists(sig_path):
