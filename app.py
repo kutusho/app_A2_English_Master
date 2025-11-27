@@ -123,7 +123,8 @@ table tbody tr td {
 /* ========= MENÚ FLOTANTE SUPERIOR IZQUIERDA ========= */
 .floating-menu-wrapper {
     position: fixed;
-    top: 1.4rem;
+    /* Lo bajamos para que no se sobreponga con la barra superior de Streamlit */
+    top: 4.5rem;
     left: 1.4rem;
     z-index: 2000;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -216,7 +217,7 @@ table tbody tr td {
 /* Responsive */
 @media (max-width: 600px) {
     .floating-menu-wrapper {
-        top: 1rem;
+        top: 4.0rem;
         left: 1rem;
     }
     .floating-menu-button {
@@ -227,6 +228,7 @@ table tbody tr td {
         min-width: 200px;
     }
 }
+
 </style>
         """,
         unsafe_allow_html=True,
