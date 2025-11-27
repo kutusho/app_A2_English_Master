@@ -757,9 +757,7 @@ def go_to_page(page_id: str):
     _rerun()
 
 def render_floating_menu(current_page_id: str):
-    """Render a fixed floating menu in the bottom-right corner."""
-    valid_ids = [p["id"] for p in PAGES]
-
+    """Render a fixed floating menu in the top-right corner."""
     items_html = []
     for page in PAGES:
         page_id = page["id"]
@@ -776,7 +774,7 @@ def render_floating_menu(current_page_id: str):
     <style>
     .floating-menu-wrapper {{
         position: fixed;
-        bottom: 1.5rem;
+        top: 1.5rem;
         right: 1.5rem;
         z-index: 1000;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -808,7 +806,7 @@ def render_floating_menu(current_page_id: str):
 
     .floating-menu-panel {{
         position: absolute;
-        bottom: 3.1rem;
+        top: 3.1rem;
         right: 0;
         background-color: #ffffff;
         border-radius: 0.9rem;
@@ -817,7 +815,7 @@ def render_floating_menu(current_page_id: str):
         min-width: 220px;
         opacity: 0;
         pointer-events: none;
-        transform: translateY(10px);
+        transform: translateY(-10px);
         transition: all 0.18s ease-out;
     }}
 
@@ -861,7 +859,7 @@ def render_floating_menu(current_page_id: str):
     /* Small screens */
     @media (max-width: 600px) {{
         .floating-menu-wrapper {{
-            bottom: 1rem;
+            top: 1rem;
             right: 1rem;
         }}
         .floating-menu-button {{
