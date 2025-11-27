@@ -189,7 +189,7 @@ UNITS = [
 ]
 
 # ==========================
-# LESSONS BY UNIT (all in English)
+# LESSONS BY UNIT (ENGLISH ONLY)
 # ==========================
 
 LESSONS = {
@@ -661,14 +661,14 @@ LESSONS = {
             ],
             "insights": [
                 "This text can later be used on your website, brochures or tour scripts.",
-                "It is a powerful way to show students how much English they can use at A2."
+                "It is a powerful way to show learners how much English they can use at A2."
             ]
         }
     ]
 }
 
 # ==========================
-# LOGO & SIGNATURE (TOP + INSTRUCTOR PAGE)
+# LOGO & SIGNATURE
 # ==========================
 
 def show_logo():
@@ -759,6 +759,10 @@ practical language and a professional learning experience.
         columns=["Item", "Details"],
     )
     st.table(facts_df)
+
+    st.markdown("### 🚀 Ready to start?")
+    if st.button("Start your first class", use_container_width=True):
+        st.session_state["page"] = "Enter your class"
 
     with st.expander("View Spanish summary / Ver resumen en español"):
         st.write(
@@ -917,40 +921,42 @@ actually experience in their daily life and work.
 # ==========================
 
 PAGES = [
-    "Overview",
-    "English Levels",
-    "Assessment & Progress",
-    "Instructor",
-    "Enter your class",
+    {"id": "Overview", "label": "Overview", "icon": "🏠"},
+    {"id": "English Levels", "label": "Levels", "icon": "📊"},
+    {"id": "Assessment & Progress", "label": "Assessment", "icon": "📝"},
+    {"id": "Instructor", "label": "Instructor", "icon": "👨‍🏫"},
+    {"id": "Enter your class", "label": "Class", "icon": "🎓"},
 ]
 
-def render_page(page_name: str):
-    if page_name == "Overview":
+def render_page(page_id: str):
+    if page_id == "Overview":
         overview_page()
-    elif page_name == "English Levels":
+    elif page_id == "English Levels":
         levels_page()
-    elif page_name == "Assessment & Progress":
+    elif page_id == "Assessment & Progress":
         assessment_page()
-    elif page_name == "Instructor":
+    elif page_id == "Instructor":
         instructor_page()
-    elif page_name == "Enter your class":
+    elif page_id == "Enter your class":
         lessons_page()
 
 def bottom_nav():
     st.markdown("---")
     st.markdown("#### Navigation")
+    st.caption("Tap a button to move between sections")
 
     cols = st.columns(len(PAGES))
-    for i, name in enumerate(PAGES):
-        label = name
-        if "page" not in st.session_state:
-            st.session_state["page"] = "Overview"
 
-        is_current = (st.session_state["page"] == name)
-        btn_label = f"**{label}**" if is_current else label
+    if "page" not in st.session_state:
+        st.session_state["page"] = "Overview"
 
-        if cols[i].button(btn_label, use_container_width=True, key=f"nav_{name}"):
-            st.session_state["page"] = name
+    for i, page in enumerate(PAGES):
+        is_current = (st.session_state["page"] == page["id"])
+        text = f"{page['icon']} {page['label']}"
+        btn_label = f"**{text}**" if is_current else text
+
+        if cols[i].button(btn_label, use_container_width=True, key=f"nav_{page['id']}"):
+            st.session_state["page"] = page["id"]
 
 # ==========================
 # MAIN
@@ -959,14 +965,10 @@ def bottom_nav():
 def main():
     show_logo()
 
-    # Set default page
     if "page" not in st.session_state:
         st.session_state["page"] = "Overview"
 
-    # Render current page
     render_page(st.session_state["page"])
-
-    # Render bottom navigation
     bottom_nav()
 
 if __name__ == "__main__":
