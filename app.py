@@ -194,25 +194,26 @@ UNITS = [
 
 def show_logo():
     """Show logo in the sidebar if available."""
-    logo_path = os.path.join("assets", "logo.png")
+    logo_path = os.path.join("assets", "logo-english-classes.png")
     if os.path.exists(logo_path):
         try:
             st.sidebar.image(logo_path, use_column_width=True)
         except Exception:
-            st.sidebar.warning("El archivo 'logo.png' no es una imagen válida. Reemplázalo por un PNG o JPG.")
+            st.sidebar.warning("El archivo 'logo-english-classes.png' no es una imagen válida.")
     else:
-        st.sidebar.info("Coloca tu logo como 'assets/logo.png' para mostrarlo aquí.")
+        st.sidebar.info("Coloca el archivo 'logo-english-classes.png' en la carpeta /assets.")
+
 
 def show_signature():
     """Show signature at the bottom if available."""
-    sig_path = os.path.join("assets", "signature.png")
+    sig_path = os.path.join("assets", "firma-ivan-diaz.png")
     if os.path.exists(sig_path):
         try:
-            st.image(sig_path, width=200)
+            st.image(sig_path, width=220)
         except Exception:
-            st.warning("El archivo 'signature.png' no es una imagen válida. Reemplázalo por un PNG o JPG.")
+            st.warning("El archivo 'firma-ivan-diaz.png' no es una imagen válida.")
     else:
-        st.info("Coloca tu firma como 'assets/signature.png' para mostrarla aquí.")
+        st.info("Coloca el archivo 'firma-ivan-diaz.png' en la carpeta /assets para mostrar tu firma.")
 
 
 # ==========================
