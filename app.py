@@ -698,6 +698,197 @@ def show_signature():
         st.info("Add your signature as 'assets/firma-ivan-diaz.png' to display it here.")
 
 # ==========================
+# NAVIGATION CONFIG
+# ==========================
+
+PAGES = [
+    {"id": "Overview", "label": "Overview", "icon": "🏠"},
+    {"id": "English Levels", "label": "Levels", "icon": "📊"},
+    {"id": "Assessment & Progress", "label": "Assessment", "icon": "📝"},
+    {"id": "Instructor", "label": "Instructor", "icon": "👨‍🏫"},
+    {"id": "Enter your class", "label": "Class", "icon": "🎓"},
+]
+
+def _get_query_params():
+    """Safe wrapper to get query params for different Streamlit versions."""
+    try:
+        # Newer versions
+        params = dict(st.query_params)
+    except Exception:
+        # Older experimental API
+        params = st.experimental_get_query_params()
+    return params
+
+def get_current_page_id() -> str:
+    """Read current page from URL query params (?page=...)."""
+    params = _get_query_params()
+    page = params.get("page")
+
+    # page may be a list (old API) or a string (new API)
+    if isinstance(page, list):
+        page = page[0] if page else None
+
+    valid_ids = [p["id"] for p in PAGES]
+
+    if not page or page not in valid_ids:
+        return "Overview"
+    return page
+
+def _rerun():
+    """Compatibility wrapper for rerun."""
+    try:
+        st.rerun()
+    except Exception:
+        st.experimental_rerun()
+
+def go_to_page(page_id: str):
+    """Programmatically navigate to a page by updating query params."""
+    valid_ids = [p["id"] for p in PAGES]
+    if page_id not in valid_ids:
+        page_id = "Overview"
+
+    try:
+        # New-style API
+        st.query_params["page"] = page_id
+    except Exception:
+        # Older API
+        st.experimental_set_query_params(page=page_id)
+
+    _rerun()
+
+def render_floating_menu(current_page_id: str):
+    """Render a fixed floating menu in the bottom-right corner."""
+    valid_ids = [p["id"] for p in PAGES]
+
+    items_html = []
+    for page in PAGES:
+        page_id = page["id"]
+        label = page["label"]
+        icon = page["icon"]
+        is_active = (page_id == current_page_id)
+        active_class = "active" if is_active else ""
+        href = f"?page={page_id}"
+        items_html.append(
+            f'<a class="menu-link {active_class}" href="{href}">{icon} {label}</a>'
+        )
+
+    menu_html = f"""
+    <style>
+    .floating-menu-wrapper {{
+        position: fixed;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        z-index: 1000;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }}
+
+    .floating-menu-toggle {{
+        display: none;
+    }}
+
+    .floating-menu-button {{
+        background: linear-gradient(135deg, #1f4b99, #274b8f);
+        color: #ffffff;
+        border-radius: 999px;
+        padding: 0.55rem 1.3rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        border: none;
+        user-select: none;
+    }}
+
+    .floating-menu-button:hover {{
+        filter: brightness(1.05);
+    }}
+
+    .floating-menu-panel {{
+        position: absolute;
+        bottom: 3.1rem;
+        right: 0;
+        background-color: #ffffff;
+        border-radius: 0.9rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        padding: 0.6rem 0.6rem 0.6rem 0.6rem;
+        min-width: 220px;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(10px);
+        transition: all 0.18s ease-out;
+    }}
+
+    .floating-menu-header {{
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #555;
+        margin-bottom: 0.4rem;
+        padding: 0 0.2rem;
+    }}
+
+    .menu-link {{
+        display: block;
+        padding: 0.4rem 0.5rem;
+        border-radius: 0.55rem;
+        text-decoration: none;
+        font-size: 0.9rem;
+        color: #222;
+        margin-bottom: 0.15rem;
+    }}
+
+    .menu-link:hover {{
+        background-color: #f1f4fb;
+    }}
+
+    .menu-link.active {{
+        background-color: #1f4b99;
+        color: #ffffff;
+        font-weight: 600;
+    }}
+
+    /* Toggle behaviour */
+    .floating-menu-toggle:checked ~ .floating-menu-panel {{
+        opacity: 1;
+        pointer-events: auto;
+        transform: translateY(0);
+    }}
+
+    /* Small screens */
+    @media (max-width: 600px) {{
+        .floating-menu-wrapper {{
+            bottom: 1rem;
+            right: 1rem;
+        }}
+        .floating-menu-button {{
+            padding: 0.45rem 1rem;
+            font-size: 0.9rem;
+        }}
+        .floating-menu-panel {{
+            min-width: 200px;
+        }}
+    }}
+    </style>
+
+    <div class="floating-menu-wrapper">
+        <input type="checkbox" id="floating-menu-toggle" class="floating-menu-toggle" />
+        <label for="floating-menu-toggle" class="floating-menu-button">
+            ☰ Menu
+        </label>
+        <div class="floating-menu-panel">
+            <div class="floating-menu-header">Navigate</div>
+            {''.join(items_html)}
+        </div>
+    </div>
+    """
+
+    st.markdown(menu_html, unsafe_allow_html=True)
+
+# ==========================
 # PAGES
 # ==========================
 
@@ -762,7 +953,7 @@ practical language and a professional learning experience.
 
     st.markdown("### 🚀 Ready to start?")
     if st.button("Start your first class", use_container_width=True):
-        st.session_state["page"] = "Enter your class"
+        go_to_page("Enter your class")
 
     with st.expander("View Spanish summary / Ver resumen en español"):
         st.write(
@@ -846,6 +1037,10 @@ def lessons_page():
     unit_number = UNITS[unit_options.index(unit_choice)]["number"]
 
     lessons = LESSONS.get(unit_number, [])
+    if not lessons:
+        st.info("No lessons defined for this unit yet.")
+        return
+
     lesson_titles = [l["title"] for l in lessons]
     lesson_choice = st.selectbox("Choose your lesson", lesson_titles)
 
@@ -917,16 +1112,8 @@ actually experience in their daily life and work.
     show_signature()
 
 # ==========================
-# BOTTOM NAVIGATION (MOBILE FRIENDLY)
+# PAGE ROUTER
 # ==========================
-
-PAGES = [
-    {"id": "Overview", "label": "Overview", "icon": "🏠"},
-    {"id": "English Levels", "label": "Levels", "icon": "📊"},
-    {"id": "Assessment & Progress", "label": "Assessment", "icon": "📝"},
-    {"id": "Instructor", "label": "Instructor", "icon": "👨‍🏫"},
-    {"id": "Enter your class", "label": "Class", "icon": "🎓"},
-]
 
 def render_page(page_id: str):
     if page_id == "Overview":
@@ -939,24 +1126,8 @@ def render_page(page_id: str):
         instructor_page()
     elif page_id == "Enter your class":
         lessons_page()
-
-def bottom_nav():
-    st.markdown("---")
-    st.markdown("#### Navigation")
-    st.caption("Tap a button to move between sections")
-
-    cols = st.columns(len(PAGES))
-
-    if "page" not in st.session_state:
-        st.session_state["page"] = "Overview"
-
-    for i, page in enumerate(PAGES):
-        is_current = (st.session_state["page"] == page["id"])
-        text = f"{page['icon']} {page['label']}"
-        btn_label = f"**{text}**" if is_current else text
-
-        if cols[i].button(btn_label, use_container_width=True, key=f"nav_{page['id']}"):
-            st.session_state["page"] = page["id"]
+    else:
+        overview_page()
 
 # ==========================
 # MAIN
@@ -965,11 +1136,11 @@ def bottom_nav():
 def main():
     show_logo()
 
-    if "page" not in st.session_state:
-        st.session_state["page"] = "Overview"
+    current_page = get_current_page_id()
+    render_page(current_page)
 
-    render_page(st.session_state["page"])
-    bottom_nav()
+    # Floating fixed menu bottom-right
+    render_floating_menu(current_page)
 
 if __name__ == "__main__":
     main()
