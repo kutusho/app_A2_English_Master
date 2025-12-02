@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+from pathlib import Path
 
 # ==========================
 # BASIC CONFIG
@@ -10,6 +11,10 @@ st.set_page_config(
     page_icon="📘",
     layout="wide"
 )
+
+# Base paths for assets and audio
+BASE_DIR = Path(__file__).parent if "__file__" in globals() else Path(os.getcwd())
+AUDIO_DIR = BASE_DIR / "audio"
 
 # ==========================
 # GLOBAL STYLES (BRANDING + DARK MODE FRIENDLY)
@@ -413,7 +418,6 @@ UNITS = [
 
 # ==========================
 # LESSONS BY UNIT
-# (igual que ya los teníamos)
 # ==========================
 
 LESSONS = {
@@ -986,6 +990,144 @@ def render_floating_menu(current_page_id: str):
     st.markdown(menu_html, unsafe_allow_html=True)
 
 # ==========================
+# UNIT 1 – SESSION 1 INTERACTIVE BLOCK
+# ==========================
+
+def render_unit1_session1_hour1():
+    st.subheader("Unit 1 – Session 1 · 1st Hour – Grammar & Writing")
+
+    st.markdown("### ✅ Objectives")
+    st.markdown(
+        "- Review the verb **be** in the present\n"
+        "- Use **be** to talk about name, country and job\n"
+        "- Write a short introduction about yourself and another person"
+    )
+
+    st.markdown("### ✏️ Warm-up")
+    st.write(
+        "Think of one person you know. Who is this person? "
+        "Where is this person from? What is their job?"
+    )
+    st.info('Example: **"She is my friend. She is from Mexico. She is a designer."**')
+
+    st.markdown("### 🧩 Grammar: Verb *be* – Forms")
+    st.write(
+        "I am → I’m\n\n"
+        "You are → You’re\n\n"
+        "He is → He’s\n\n"
+        "She is → She’s\n\n"
+        "We are → We’re\n\n"
+        "They are → They’re"
+    )
+
+    st.markdown("### ✍️ Practice – Complete with *am / is / are*")
+    st.markdown(
+        "1. I ______ from Guatemala.\n\n"
+        "2. She ______ a tour guide.\n\n"
+        "3. They ______ not students.\n\n"
+        "4. We ______ friends.\n\n"
+        "5. He ______ from Italy.\n\n"
+        "6. You ______ my classmate."
+    )
+
+    st.markdown("### ✍️ Guided writing – About you")
+    st.info(
+        'Model: *"Hello, my name is Laura. I’m from Mexico City and I’m Mexican. '
+        'I’m a student. I’m very happy to study English."*'
+    )
+    st.write("Now write your own introduction in your notebook.")
+
+    st.markdown("### ✍️ Guided writing – Another person")
+    st.info(
+        'Model: *"This is my friend Daniel. He’s from Costa Rica and he’s Costa Rican. '
+        'He’s an architect. He isn’t a student."*'
+    )
+    st.write("Write about a friend, classmate or family member.")
+
+
+def _audio_or_warning(filename: str):
+    """Helper to render audio if file exists, else a gentle warning."""
+    audio_path = AUDIO_DIR / filename
+    if audio_path.exists():
+        st.audio(str(audio_path))
+    else:
+        st.warning(f"Audio file not found: `audio/{filename}`")
+
+
+def render_unit1_session1_hour2():
+    st.subheader("Unit 1 – Session 1 · 2nd Hour – Listening & Speaking")
+
+    st.markdown("### 🎯 Objectives")
+    st.markdown(
+        "- Understand short audio introductions\n"
+        "- Recognize countries, nationalities and jobs in context\n"
+        "- Practice pronunciation\n"
+        "- Speak about yourself and another person"
+    )
+
+    # Listening 1 – Welcome
+    st.markdown("### 🔊 Listening 1 – Welcome")
+    _audio_or_warning("unit1_hour2_welcome.mp3")
+    st.caption(
+        "Script: Welcome to the second part of Session One. Today, we will focus on "
+        "listening and speaking. You will listen to real introductions, repeat key "
+        "structures, and practice speaking about yourself and other people."
+    )
+
+    # Listening 2 – Verb be
+    st.markdown("### 🔊 Listening 2 – Verb *be* pronunciation")
+    _audio_or_warning("unit1_hour2_be_pronunciation.mp3")
+    st.write("Listen first. Then repeat each form of **be**.")
+
+    # Listening 3 – Countries & nationalities
+    st.markdown("### 🔊 Listening 3 – Countries & nationalities")
+    _audio_or_warning("unit1_hour2_countries.mp3")
+    st.write("After listening, say: *I’m Mexican / I’m Guatemalan / I’m American*, etc.")
+
+    # Listening 4 – Jobs
+    st.markdown("### 🔊 Listening 4 – Jobs vocabulary")
+    _audio_or_warning("unit1_hour2_jobs.mp3")
+    st.write("Listen and repeat. Then answer: *What’s your job?*")
+
+    # Listening 5 – Sample introduction
+    st.markdown("### 🔊 Listening 5 – Sample introduction")
+    _audio_or_warning("unit1_hour2_sample_intro.mp3")
+    st.markdown(
+        "**Questions:**\n\n"
+        "1. What is his name?\n"
+        "2. Where is he from?\n"
+        "3. What is his job?\n"
+        "4. What does he carry every day?"
+    )
+
+    # Final listening
+    st.markdown("### 🔊 Final listening – A friend")
+    _audio_or_warning("unit1_hour2_final_listening.mp3")
+    st.markdown(
+        "**Questions:**\n\n"
+        "1. What is her name?\n"
+        "2. Where is she from?\n"
+        "3. What is her job?\n"
+        "4. What does she carry every day?"
+    )
+
+    # Speaking tasks
+    st.markdown("### 🗣️ Speaking – About you")
+    st.markdown(
+        "- What’s your name?\n"
+        "- Where are you from?\n"
+        "- What’s your nationality?\n"
+        "- What’s your job?\n"
+        "- What do you always carry with you?"
+    )
+
+    st.markdown("### 👥 Pair work – Interview")
+    st.write(
+        "Work in pairs. Ask and answer the questions above. "
+        "Then introduce your partner to the group."
+    )
+
+# ==========================
 # PAGES
 # ==========================
 
@@ -1125,6 +1267,22 @@ def lessons_page():
         for item in lesson["insights"]:
             st.markdown(f"- {item}")
         st.success("Use this space to add your own notes, examples or anecdotes for each group.")
+
+    # --- SPECIAL: Unit 1 – Class 1 → Interactive Session 1 (Hour 1 / Hour 2) ---
+    if unit_number == 1 and "Class 1" in lesson_choice:
+        st.markdown("---")
+        st.markdown("### 🎧 Interactive Session 1 – Mobile-ready")
+
+        hour = st.radio(
+            "Choose part:",
+            ["1st Hour – Grammar & Writing", "2nd Hour – Listening & Speaking"],
+            horizontal=True
+        )
+
+        if hour.startswith("1st"):
+            render_unit1_session1_hour1()
+        else:
+            render_unit1_session1_hour2()
 
 def assessment_page():
     show_logo()
