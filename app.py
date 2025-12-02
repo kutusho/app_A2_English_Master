@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from pathlib import Path
+import streamlit.components.v1 as components  # Para embeber las presentaciones HTML
 
 # ==========================
 # BASIC CONFIG
@@ -12,9 +13,11 @@ st.set_page_config(
     layout="wide"
 )
 
-# Base paths for assets and audio
+# Base paths for assets and media
 BASE_DIR = Path(__file__).parent if "__file__" in globals() else Path(os.getcwd())
 AUDIO_DIR = BASE_DIR / "audio"
+STATIC_DIR = BASE_DIR / "static"  # aquí irán las presentaciones HTML
+
 
 # ==========================
 # GLOBAL STYLES (BRANDING + DARK MODE FRIENDLY)
@@ -128,7 +131,6 @@ table tbody tr td {
 /* ========= MENÚ FLOTANTE SUPERIOR IZQUIERDA ========= */
 .floating-menu-wrapper {
     position: fixed;
-    /* Lo bajamos para que no se sobreponga con la barra superior de Streamlit */
     top: 4.5rem;
     left: 1.4rem;
     z-index: 2000;
@@ -238,6 +240,7 @@ table tbody tr td {
         """,
         unsafe_allow_html=True,
     )
+
 
 # ==========================
 # COURSE DATA
@@ -917,6 +920,7 @@ def show_signature():
     else:
         st.info("Add your signature as 'assets/firma-ivan-diaz.png' to display it here.")
 
+
 # ==========================
 # NAVIGATION (QUERY PARAMS + FLOATING MENU)
 # ==========================
@@ -989,8 +993,9 @@ def render_floating_menu(current_page_id: str):
     """
     st.markdown(menu_html, unsafe_allow_html=True)
 
+
 # ==========================
-# UNIT 1 – SESSION 1 INTERACTIVE BLOCK
+# UNIT 1 – SESSION 1 HELPERS
 # ==========================
 
 def render_unit1_session1_hour1():
@@ -1046,7 +1051,7 @@ def render_unit1_session1_hour1():
 
 
 def _audio_or_warning(filename: str):
-    """Helper to render audio if file exists, else a gentle warning."""
+    """Render audio if file exists, else a gentle warning."""
     audio_path = AUDIO_DIR / filename
     if audio_path.exists():
         st.audio(str(audio_path))
@@ -1127,6 +1132,21 @@ def render_unit1_session1_hour2():
         "Then introduce your partner to the group."
     )
 
+
+def render_presentation_html(filename: str):
+    """Render a Reveal.js HTML presentation inside the app if the file exists."""
+    html_path = STATIC_DIR / filename
+    if html_path.exists():
+        try:
+            with open(html_path, "r", encoding="utf-8") as f:
+                html_content = f.read()
+            components.html(html_content, height=600, scrolling=True)
+        except Exception as e:
+            st.error(f"Error loading presentation: {e}")
+    else:
+        st.warning(f"Presentation file not found: `static/{filename}`")
+
+
 # ==========================
 # PAGES
 # ==========================
@@ -1204,6 +1224,7 @@ reales, especialmente útiles para turismo y servicios.
             """
         )
 
+
 def levels_page():
     show_logo()
     st.title("🎯 English Levels (CEFR)")
@@ -1227,6 +1248,7 @@ def levels_page():
         "- It expands vocabulary for daily life, work and travel.\n"
         "- It prepares learners to move into **B1 – Intermediate** with confidence."
     )
+
 
 def lessons_page():
     show_logo()
@@ -1268,10 +1290,10 @@ def lessons_page():
             st.markdown(f"- {item}")
         st.success("Use this space to add your own notes, examples or anecdotes for each group.")
 
-    # --- SPECIAL: Unit 1 – Class 1 → Interactive Session 1 (Hour 1 / Hour 2) ---
+    # --- SPECIAL: Unit 1 – Class 1 → Interactive Session 1 (Hour 1 / Hour 2) + Presentación ---
     if unit_number == 1 and "Class 1" in lesson_choice:
         st.markdown("---")
-        st.markdown("### 🎧 Interactive Session 1 – Mobile-ready")
+        st.markdown("### 🎧 Unit 1 – Session 1 · Mobile class + Presentation")
 
         hour = st.radio(
             "Choose part:",
@@ -1279,10 +1301,24 @@ def lessons_page():
             horizontal=True
         )
 
-        if hour.startswith("1st"):
-            render_unit1_session1_hour1()
+        view_mode = st.radio(
+            "View mode",
+            ["Interactive app", "Slideshow (presentation)"],
+            horizontal=True
+        )
+
+        if view_mode == "Interactive app":
+            if hour.startswith("1st"):
+                render_unit1_session1_hour1()
+            else:
+                render_unit1_session1_hour2()
         else:
-            render_unit1_session1_hour2()
+            # Slideshow (Reveal.js HTML)
+            if hour.startswith("1st"):
+                render_presentation_html("unit1_session1_hour1.html")
+            else:
+                render_presentation_html("unit1_session1_hour2.html")
+
 
 def assessment_page():
     show_logo()
@@ -1309,6 +1345,7 @@ def assessment_page():
     )
     st.table(df)
 
+
 def instructor_page():
     show_logo()
     st.title("👨‍🏫 Instructor")
@@ -1329,6 +1366,7 @@ actually experience in their daily life and work.
     st.markdown("### Signature")
     show_signature()
 
+
 # ==========================
 # PAGE ROUTER
 # ==========================
@@ -1346,6 +1384,7 @@ def render_page(page_id: str):
         lessons_page()
     else:
         overview_page()
+
 
 # ==========================
 # MAIN
