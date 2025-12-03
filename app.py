@@ -1169,12 +1169,81 @@ def render_unit1_session2_hour1():
 
 def render_unit1_session2_hour2():
     st.subheader("Unit 1 – Session 2 · 2nd Hour – Listening & Speaking")
-    st.markdown("### Focus: Listening to countries & jobs / role play")
-    st.write(
-        "Play your audios for Session 2 and practise short conversations at an international event: "
-        "name, country, nationality and job."
+    st.markdown("### Theme: Countries, nationalities & jobs – International event")
+
+    st.markdown("### 🎯 Objectives")
+    st.markdown(
+        "- Understand very slow introductions at an international event.\n"
+        "- Recognize question patterns about name, country, nationality and job.\n"
+        "- Practise short dialogues in pairs.\n"
+        "- Prepare a final group introduction task."
     )
-    st.info("Integra aquí tus audios de Session 2 con _audio_or_warning(), igual que en Session 1.")
+
+    # Listening 1 – Welcome
+    st.markdown("### 🔊 Listening 1 – Welcome to Session 2")
+    _audio_or_warning("U1_S2_audio1_welcome.mp3")
+    st.caption(
+        "Extra slow welcome to Session 2. Explains that students will listen to people "
+        "from different countries and jobs at an international event."
+    )
+
+    # Listening 2 – Question patterns
+    st.markdown("### 🔊 Listening 2 – Question patterns")
+    _audio_or_warning("U1_S2_audio2_question_patterns.mp3")
+    st.markdown(
+        "**Focus:**\n"
+        "- What’s your name?\n"
+        "- Where are you from?\n"
+        "- What’s your nationality?\n"
+        "- What do you do?\n\n"
+        "Students listen and repeat the questions several times."
+    )
+
+    # Listening 3 – Short dialogues
+    st.markdown("### 🔊 Listening 3 – Short dialogues")
+    _audio_or_warning("U1_S2_audio3_short_dialogues.mp3")
+    st.write(
+        "Listen to the mini-dialogues between two people at an international event. "
+        "After listening, students practise the same dialogues in pairs."
+    )
+    st.markdown(
+        "**Task:**\n"
+        "1. Listen once – just understand the idea.\n"
+        "2. Listen again and repeat.\n"
+        "3. Practise in pairs changing the country, nationality and job."
+    )
+
+    # Listening 4 – Group introduction
+    st.markdown("### 🔊 Listening 4 – Group introduction model")
+    _audio_or_warning("U1_S2_audio4_group_introduction.mp3")
+    st.markdown(
+        "This audio gives a model of how to introduce several people in a group.\n\n"
+        "**After listening, ask:**\n"
+        "- How many people are in the group?\n"
+        "- Where are they from?\n"
+        "- What jobs do they have?"
+    )
+
+    # Listening 5 – Final task
+    st.markdown("### 🔊 Listening 5 – Final task instructions")
+    _audio_or_warning("U1_S2_audio5_final_task.mp3")
+    st.markdown(
+        "Students follow the instructions from the audio:\n"
+        "1. Walk around the classroom and talk to **3 classmates**.\n"
+        "2. Ask: *What’s your name? Where are you from? What do you do?*\n"
+        "3. Take notes.\n"
+        "4. At the end, introduce **one person** from your notes to the class."
+    )
+
+    st.markdown("### 🗣️ Speaking – Present a classmate")
+    st.info(
+        '"This is Carlos. He is from Colombia. He is Colombian and he is a tour guide. '
+        'He works in Bogotá."'
+    )
+    st.write(
+        "Students prepare one short introduction and present it to the group. "
+        "Teacher checks pronunciation of countries, nationalities and jobs."
+    )
 
 
 # ==========================
