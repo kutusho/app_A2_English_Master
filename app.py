@@ -1159,12 +1159,102 @@ def render_unit1_session1_hour2():
 
 def render_unit1_session2_hour1():
     st.subheader("Unit 1 – Session 2 · 1st Hour – Grammar & Writing")
-    st.markdown("### Focus: Countries, nationalities and jobs")
-    st.write(
-        "Use this hour to review **Where are you from? / What do you do?** "
-        "and practise written controlled activities about countries, nationalities and jobs."
+    st.markdown("### Theme: Countries, nationalities & jobs – Question patterns")
+
+    st.markdown("### ✅ Objectives")
+    st.markdown(
+        "- Review countries, nationalities and jobs.\n"
+        "- Use question patterns: **What’s your name? / Where are you from? / What’s your nationality? / What do you do?**\n"
+        "- Practise controlled exercises with questions and answers.\n"
+        "- Write a short form for an international event."
     )
-    st.info("Aquí puedes adaptar exactamente lo que ya tenías de Session 2 para Grammar & Writing.")
+
+    st.markdown("### ✏️ Warm-up – International event")
+    st.write(
+        "Imagine you are at an **international tourism event**. "
+        "You meet people from different countries."
+    )
+    st.markdown(
+        "- What questions do you ask first?\n"
+        "- What information is important for you?"
+    )
+    st.info(
+        'Typical questions: *"What’s your name? Where are you from? '
+        'What do you do?"*'
+    )
+
+    st.markdown("### 🧩 Question patterns – Form & meaning")
+    st.markdown(
+        "| Question                         | Meaning                        | Example answer                         |\n"
+        "|----------------------------------|--------------------------------|----------------------------------------|\n"
+        "| **What’s your name?**            | Ask for name                   | My name is Ana. / I’m Ana.             |\n"
+        "| **Where are you from?**          | Ask for country / city         | I’m from Mexico City.                  |\n"
+        "| **What’s your nationality?**     | Ask for nationality            | I’m Mexican.                           |\n"
+        "| **What do you do?**              | Ask for job / occupation       | I’m a tour guide. / I work in a hotel. |"
+    )
+
+    st.markdown("### ✍️ Controlled practice 1 – Complete the questions")
+    st.markdown(
+        "Complete with **What / Where / What’s / What do**.\n\n"
+        "1. ______ your name?\n\n"
+        "2. ______ are you from?\n\n"
+        "3. ______ your nationality?\n\n"
+        "4. ______ you do?\n"
+    )
+
+    st.markdown("### ✍️ Controlled practice 2 – Match questions and answers")
+    st.markdown("Match the questions (1–4) with the answers (a–d).")
+    st.markdown(
+        "**Questions:**\n"
+        "1. What’s your name?\n"
+        "2. Where are you from?\n"
+        "3. What’s your nationality?\n"
+        "4. What do you do?\n\n"
+        "**Answers:**\n"
+        "a. I’m a receptionist.\n"
+        "b. I’m Brazilian.\n"
+        "c. I’m from São Paulo.\n"
+        "d. My name is Carla.\n"
+    )
+
+    st.markdown("### ✍️ Controlled practice 3 – Complete the dialogue")
+    st.write("Complete the dialogue with the correct questions.")
+
+    st.markdown(
+        "**A:** Hi, I’m Luis. __(1)____________________?\n\n"
+        "**B:** My name is Sara.\n\n"
+        "**A:** Nice to meet you, Sara. __(2)____________________?\n\n"
+        "**B:** I’m from Guatemala City.\n\n"
+        "**A:** Oh, great. __(3)____________________?\n\n"
+        "**B:** I’m Guatemalan.\n\n"
+        "**A:** And __(4)____________________?\n\n"
+        "**B:** I’m a travel agent.\n"
+    )
+
+    st.markdown("### ✍️ Guided writing – Registration form")
+    st.write(
+        "Now write a **short registration form** for an international event. "
+        "Use the four question patterns."
+    )
+    st.markdown(
+        "**Example form:**\n\n"
+        "1. What’s your name?\n"
+        "2. Where are you from?\n"
+        "3. What’s your nationality?\n"
+        "4. What do you do?\n"
+    )
+    st.write(
+        "Students write the form in their notebook and then use it to interview a partner."
+    )
+
+    st.markdown("### 🗣️ Quick speaking – Pair interview")
+    st.markdown(
+        "In pairs:\n"
+        "1. Use your form and ask the four questions.\n"
+        "2. Take notes about your partner.\n"
+        "3. Introduce your partner to the class:\n"
+        '   *\"This is Ana. She is from Colombia. She is Colombian and she is a tour guide.\"*'
+    )
 
 
 def render_unit1_session2_hour2():
