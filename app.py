@@ -1364,6 +1364,391 @@ def render_unit1_session3_hour2():
         "Students present in pairs or small groups. "
         "Teacher listens for correct use of **be** and adjectives."
     )
+# ==========================
+# UNIT 2 – SESSION 1
+# ==========================
+
+def render_unit2_session1_hour1():
+    st.subheader("Unit 2 – Session 1 · 1st Hour – Grammar & Writing")
+    st.markdown("### Theme: Daily routines")
+
+    st.markdown("### ✅ Objectives")
+    st.markdown(
+        "- Use the **present simple** to talk about daily routines.\n"
+        "- Use **adverbs of frequency** (always, usually, sometimes, never).\n"
+        "- Write a short paragraph about your typical day."
+    )
+
+    st.markdown("### ✏️ Warm-up – Your day")
+    st.write("Think about a normal weekday for you.")
+    st.markdown(
+        "- What time do you get up?\n"
+        "- What do you do in the morning?\n"
+        "- What do you do in the afternoon and evening?"
+    )
+    st.info('Example: *"I get up at 7:00. I have breakfast, then I go to work."*')
+
+    st.markdown("### 🧩 Grammar – Present simple (affirmative)")
+    st.markdown(
+        "We use the **present simple** to talk about routines and habits.\n\n"
+        "**Structure:**\n\n"
+        "- I / You / We / They **+ base verb** → *I work, They live, We study*\n"
+        "- He / She / It **+ base verb + s / es** → *He works, She lives, It closes*"
+    )
+
+    st.markdown("**Examples:**")
+    st.markdown(
+        "- I get up at 6:30.\n"
+        "- She starts work at 9:00.\n"
+        "- They finish school at 3:00.\n"
+        "- He watches TV in the evening."
+    )
+
+    st.markdown("### ✍️ Practice – Complete with the correct form")
+    st.markdown(
+        "1. I ______ (get up) at 7:00.\n\n"
+        "2. She ______ (start) work at 9:30.\n\n"
+        "3. They ______ (have) lunch at 2:00.\n\n"
+        "4. He ______ (go) to bed at 11:00.\n\n"
+        "5. We ______ (study) English on Tuesday.\n\n"
+        "6. My sister ______ (watch) series at night."
+    )
+
+    st.markdown("### 🧩 Adverbs of frequency")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("**Common adverbs:**")
+        st.markdown(
+            "- always (100%)\n"
+            "- usually\n"
+            "- often\n"
+            "- sometimes\n"
+            "- hardly ever\n"
+            "- never (0%)"
+        )
+
+    with col2:
+        st.markdown("**Position in the sentence:**")
+        st.markdown(
+            "- Before the main verb: *I **usually** get up at 7:00.*\n"
+            "- After **be**: *She is **often** late.*"
+        )
+        st.info('Example: *"I sometimes have breakfast at a café."*')
+
+    st.markdown("### ✍️ Controlled practice – Frequency")
+    st.markdown(
+        "Rewrite the sentences with an adverb of frequency.\n\n"
+        "1. I eat breakfast at home. (**usually**)\n\n"
+        "2. She is late for work. (**sometimes**)\n\n"
+        "3. They drink coffee in the evening. (**never**)\n\n"
+        "4. We go to the cinema. (**hardly ever**)"
+    )
+
+    st.markdown("### ✍️ Guided writing – My typical day")
+    st.info(
+        '"On weekdays I usually get up at 6:30. I have coffee and bread, then I go to work.\n'
+        'I start work at 8:00 and finish at 4:00. After work I sometimes go to the gym\n'
+        'or I meet my friends. I never go to bed late on Monday to Friday."'
+    )
+
+    st.write("Now write **5–7 sentences** about your typical day. Use:")
+    st.markdown(
+        "- Present simple (get up, start, finish, go, have…)\n"
+        "- At least **3 adverbs of frequency**."
+    )
+
+
+def render_unit2_session1_hour2():
+    st.subheader("Unit 2 – Session 1 · 2nd Hour – Listening & Speaking")
+    st.markdown("### Theme: Daily routines (listening & speaking)")
+
+    st.markdown("### 🎯 Objectives")
+    st.markdown(
+        "- Understand short audios about people’s routines.\n"
+        "- Identify **times, activities and frequency**.\n"
+        "- Speak about your own daily routine."
+    )
+
+    st.markdown("### 🔊 Listening 1 – Welcome to Unit 2, Session 1")
+    _audio_or_warning("U2_S1_audio1_intro.mp3")
+    st.caption(
+        "Slow introduction to the topic of daily routines: what students will hear and practise."
+    )
+
+    st.markdown("### 🔊 Listening 2 – Daily routine vocabulary")
+    _audio_or_warning("U2_S1_audio2_routines_vocab.mp3")
+    st.markdown(
+        "Listen and repeat verbs like: **get up, have breakfast, go to work, start work, finish work, "
+        "have lunch, study, go home, cook, relax, go to bed**."
+    )
+
+    st.markdown("### 🔊 Listening 3 – Two people’s routines")
+    _audio_or_warning("U2_S1_audio3_two_routines.mp3")
+    st.write("Listen and complete the table:")
+
+    st.markdown(
+        "| Person | Time they get up | Time they start work / school | What they do in the evening |\n"
+        "|--------|------------------|-------------------------------|------------------------------|\n"
+        "| A      | ______           | ______                        | ______                       |\n"
+        "| B      | ______           | ______                        | ______                       |"
+    )
+
+    st.markdown("### 🔊 Listening 4 – Frequency")
+    _audio_or_warning("U2_S1_audio4_frequency.mp3")
+    st.markdown(
+        "Listen for **always, usually, sometimes, never**.\n\n"
+        "**Questions:**\n"
+        "- What does Person A always do in the morning?\n"
+        "- What does Person B sometimes do in the evening?\n"
+        "- What do they never do on weekdays?"
+    )
+
+    st.markdown("### 🗣️ Speaking – My day")
+    st.markdown(
+        "Use these prompts to speak for **1–2 minutes** about your day:\n\n"
+        "- On weekdays I usually…\n"
+        "- I get up at… and I start work/school at…\n"
+        "- In the evening I sometimes…\n"
+        "- I never… on weekdays."
+    )
+
+    st.markdown("### 👥 Pair work – Compare your routines")
+    st.write("Work in pairs. Ask and answer:")
+    st.markdown(
+        "- What time do you get up on weekdays?\n"
+        "- Do you have breakfast at home or outside?\n"
+        "- What do you usually do after work / school?\n"
+        "- Do you ever study or work at night?"
+    )
+    st.info("Then tell the class **one similarity** and **one difference** between your routines.")
+
+
+# ==========================
+# UNIT 2 – SESSION 2
+# ==========================
+
+def render_unit2_session2_hour1():
+    st.subheader("Unit 2 – Session 2 · 1st Hour – Grammar & Writing")
+    st.markdown("### Theme: Free time & present simple questions")
+
+    st.markdown("### ✅ Objectives")
+    st.markdown(
+        "- Use **present simple questions** with **do / does**.\n"
+        "- Talk about **free-time activities**.\n"
+        "- Write short questions and answers about free time."
+    )
+
+    st.markdown("### ✏️ Warm-up – Free time")
+    st.write("Think about your free time.")
+    st.markdown(
+        "- What do you do in your free time?\n"
+        "- When do you usually have free time?\n"
+        "- Do you prefer staying at home or going out?"
+    )
+
+    st.markdown("### 🧩 Grammar – Questions with do/does")
+    st.markdown(
+        "**Structure:**\n\n"
+        "- **Do** I/you/we/they + base verb → *Do you work on Sunday?*\n"
+        "- **Does** he/she/it + base verb → *Does she play tennis?*\n\n"
+        "**Short answers:**\n"
+        "- Yes, I do. / No, I don’t.\n"
+        "- Yes, she does. / No, she doesn’t."
+    )
+
+    st.markdown("### ✍️ Controlled practice – Make questions")
+    st.markdown(
+        "Write questions using **do/does**.\n\n"
+        "1. you / watch TV / in the evening?\n"
+        "2. your friends / play football / at the weekend?\n"
+        "3. your teacher / give / a lot of homework?\n"
+        "4. your family / go out / on Sundays?\n"
+        "5. your best friend / like / coffee?"
+    )
+
+    st.markdown("### 🧩 Vocabulary – Free-time activities")
+    st.markdown(
+        "- watch series / movies\n"
+        "- go to the cinema\n"
+        "- read books / magazines\n"
+        "- listen to music / podcasts\n"
+        "- go for a walk\n"
+        "- play sports (football, basketball, volleyball, etc.)\n"
+        "- meet friends\n"
+        "- play video games"
+    )
+
+    st.markdown("### ✍️ Guided writing – Survey questions")
+    st.write("Write **5 questions** about free time to ask your classmates.")
+    st.info(
+        'Example: *"Do you usually watch TV at night?"* / *"Does your best friend play any sport?"*'
+    )
+
+
+def render_unit2_session2_hour2():
+    st.subheader("Unit 2 – Session 2 · 2nd Hour – Listening & Speaking")
+    st.markdown("### Theme: Free time (listening & survey)")
+
+    st.markdown("### 🎯 Objectives")
+    st.markdown(
+        "- Understand people talking about free-time activities.\n"
+        "- Practise questions with **do/does**.\n"
+        "- Create and present a simple class survey."
+    )
+
+    st.markdown("### 🔊 Listening 1 – Free time intro")
+    _audio_or_warning("U2_S2_audio1_intro.mp3")
+    st.caption(
+        "Intro to free-time activities and what students will do in the session."
+    )
+
+    st.markdown("### 🔊 Listening 2 – Three people and their free time")
+    _audio_or_warning("U2_S2_audio2_three_people.mp3")
+    st.write("Listen and answer:")
+    st.markdown(
+        "1. What does **Person A** do in their free time?\n"
+        "2. What does **Person B** usually do at the weekend?\n"
+        "3. Does **Person C** like staying at home or going out?"
+    )
+
+    st.markdown("### 🔊 Listening 3 – Questions & short answers")
+    _audio_or_warning("U2_S2_audio3_questions_answers.mp3")
+    st.markdown(
+        "Listen to the questions and short answers and repeat:\n\n"
+        "- *Do you watch TV every day?* – *Yes, I do. / No, I don’t.*\n"
+        "- *Does she go to the gym?* – *Yes, she does. / No, she doesn’t.*"
+    )
+
+    st.markdown("### 👥 Pair work – Mini survey")
+    st.write(
+        "Use your **5 questions** from the first hour. Ask **3 classmates** and note their answers."
+    )
+    st.markdown(
+        "Then prepare **2–3 sentences** about the results, for example:\n"
+        "- *Most people watch TV in the evening.*\n"
+        "- *Two people don’t like going out at night.*"
+    )
+
+    st.markdown("### 🗣️ Speaking – Report your results")
+    st.write("Share your results with the class using present simple:")
+    st.info(
+        '"In our group, three people play sports at the weekend and two people '
+        'hardly ever watch TV."'
+    )
+
+
+# ==========================
+# UNIT 2 – SESSION 3
+# ==========================
+
+def render_unit2_session3_hour1():
+    st.subheader("Unit 2 – Session 3 · 1st Hour – Grammar & Writing")
+    st.markdown("### Theme: Habits & lifestyle")
+
+    st.markdown("### ✅ Objectives")
+    st.markdown(
+        "- Review **present simple** and frequency expressions.\n"
+        "- Use simple connectors: **and, but, because**.\n"
+        "- Write a short paragraph about your lifestyle."
+    )
+
+    st.markdown("### ✏️ Warm-up – Healthy or unhealthy?")
+    st.write("Think about your lifestyle.")
+    st.markdown(
+        "- Do you sleep enough?\n"
+        "- Do you eat healthy food?\n"
+        "- Do you do any exercise?"
+    )
+
+    st.markdown("### 🧩 Grammar – Connectors")
+    st.markdown(
+        "- **and** → to add information: *I drink coffee **and** tea.*\n"
+        "- **but** → to contrast: *I like sweets, **but** I don’t like chocolate.*\n"
+        "- **because** → to give a reason: *I go to bed early **because** I work a lot.*"
+    )
+
+    st.markdown("### ✍️ Controlled practice – Complete the sentences")
+    st.markdown(
+        "1. I eat fruit in the morning ______ I drink water.\n\n"
+        "2. I like watching series, ______ I don’t have much time.\n\n"
+        "3. I go for a walk every day ______ it helps me relax.\n\n"
+        "4. I usually sleep 7 hours, ______ sometimes I go to bed late."
+    )
+
+    st.markdown("### 🧩 Frequency expressions for lifestyle")
+    st.markdown(
+        "- every day\n"
+        "- once a week / twice a week\n"
+        "- three times a week\n"
+        "- at the weekend\n"
+        "- on weekdays\n"
+        "- in the morning / in the evening"
+    )
+
+    st.markdown("### ✍️ Guided writing – My lifestyle")
+    st.info(
+        '"I usually get up early on weekdays because I work in the morning.\n'
+        'I drink coffee and I sometimes eat fruit for breakfast.\n'
+        'I don’t do a lot of exercise, but I walk to work every day.\n'
+        'At the weekend I relax and spend time with my family."'
+    )
+    st.write(
+        "Write **6–8 sentences** about your lifestyle. Use **present simple, frequency expressions "
+        "and connectors (and, but, because)**."
+    )
+
+
+def render_unit2_session3_hour2():
+    st.subheader("Unit 2 – Session 3 · 2nd Hour – Listening & Speaking")
+    st.markdown("### Theme: Habits & lifestyle (listening & speaking)")
+
+    st.markdown("### 🎯 Objectives")
+    st.markdown(
+        "- Understand short texts about healthy and unhealthy lifestyles.\n"
+        "- Discuss your own habits.\n"
+        "- Give simple advice using **should / shouldn’t** (light review)."
+    )
+
+    st.markdown("### 🔊 Listening 1 – Two lifestyles")
+    _audio_or_warning("U2_S3_audio1_two_lifestyles.mp3")
+    st.markdown(
+        "Listen to **Person A** and **Person B** and decide:\n\n"
+        "- Who has a **healthier** lifestyle?\n"
+        "- Why?"
+    )
+
+    st.markdown("### 🔊 Listening 2 – Details")
+    _audio_or_warning("U2_S3_audio2_details.mp3")
+    st.markdown(
+        "Answer the questions:\n\n"
+        "1. How many hours does Person A sleep?\n"
+        "2. What does Person B usually eat for breakfast?\n"
+        "3. How often does Person A do exercise?\n"
+        "4. What does Person B do at the weekend?"
+    )
+
+    st.markdown("### 🧩 Quick review – Should / shouldn’t")
+    st.markdown(
+        "- You **should** sleep 7–8 hours.\n"
+        "- You **shouldn’t** eat fast food every day."
+    )
+
+    st.markdown("### 🗣️ Pair work – Talk about your lifestyle")
+    st.markdown(
+        "In pairs, ask and answer:\n\n"
+        "- How many hours do you sleep?\n"
+        "- What do you usually eat for breakfast?\n"
+        "- Do you do any exercise? How often?\n"
+        "- What healthy habits do you have?\n"
+        "- What unhealthy habits do you have?"
+    )
+
+    st.markdown("### 🗣️ Speaking – Give advice")
+    st.write("Give **two pieces of advice** to your partner using **should / shouldn’t**.")
+    st.info(
+        '"You should drink more water." / "You shouldn’t work so late at night."'
+    )
 
 
 # ==========================
@@ -1590,7 +1975,87 @@ def lessons_page():
                 render_presentation_html("unit1_session3_hour1.html")
             else:
                 render_presentation_html("unit1_session3_hour2.html")
+        # --- SPECIAL BLOCKS: UNIT 2 – CLASS 1, 2, 3 ---
+    elif unit_number == 2 and "Class 1" in lesson_choice:
+        st.markdown("---")
+        st.markdown("### 🎧 Unit 2 – Session 1 · Mobile class + Presentation")
 
+        hour = st.radio(
+            "Choose part:",
+            ["1st Hour – Grammar & Writing", "2nd Hour – Listening & Speaking"],
+            horizontal=True
+        )
+
+        view_mode = st.radio(
+            "View mode",
+            ["Interactive app", "Slideshow (presentation)"],
+            horizontal=True
+        )
+
+        if view_mode == "Interactive app":
+            if hour.startswith("1st"):
+                render_unit2_session1_hour1()
+            else:
+                render_unit2_session1_hour2()
+        else:
+            if hour.startswith("1st"):
+                render_presentation_html("unit2_session1_hour1.html")
+            else:
+                render_presentation_html("unit2_session1_hour2.html")
+
+    elif unit_number == 2 and "Class 2" in lesson_choice:
+        st.markdown("---")
+        st.markdown("### 🎧 Unit 2 – Session 2 · Mobile class + Presentation")
+
+        hour = st.radio(
+            "Choose part:",
+            ["1st Hour – Grammar & Writing", "2nd Hour – Listening & Speaking"],
+            horizontal=True
+        )
+
+        view_mode = st.radio(
+            "View mode",
+            ["Interactive app", "Slideshow (presentation)"],
+            horizontal=True
+        )
+
+        if view_mode == "Interactive app":
+            if hour.startswith("1st"):
+                render_unit2_session2_hour1()
+            else:
+                render_unit2_session2_hour2()
+        else:
+            if hour.startswith("1st"):
+                render_presentation_html("unit2_session2_hour1.html")
+            else:
+                render_presentation_html("unit2_session2_hour2.html")
+
+    elif unit_number == 2 and "Class 3" in lesson_choice:
+        st.markdown("---")
+        st.markdown("### 🎧 Unit 2 – Session 3 · Mobile class + Presentation")
+
+        hour = st.radio(
+            "Choose part:",
+            ["1st Hour – Grammar & Writing", "2nd Hour – Listening & Speaking"],
+            horizontal=True
+        )
+
+        view_mode = st.radio(
+            "View mode",
+            ["Interactive app", "Slideshow (presentation)"],
+            horizontal=True
+        )
+
+        if view_mode == "Interactive app":
+            if hour.startswith("1st"):
+                render_unit2_session3_hour1()
+            else:
+                render_unit2_session3_hour2()
+        else:
+            if hour.startswith("1st"):
+                render_presentation_html("unit2_session3_hour1.html")
+            else:
+                render_presentation_html("unit2_session3_hour2.html")
 
 def assessment_page():
     show_logo()
@@ -1670,3 +2135,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
