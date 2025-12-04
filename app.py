@@ -1978,7 +1978,7 @@ facts_df["Details"] = facts_df["Details"].astype(str)
 st.table(facts_df)
 
 
-    st.markdown("### 🚀 Ready to start?")
+st.markdown("### 🚀 Ready to start?")
     if st.button("Start your first class", use_container_width=True):
         go_to_page("Enter your class")
 
