@@ -1972,6 +1972,9 @@ practical language and a professional learning experience.
         ],
         columns=["Item", "Details"],
     )
+    facts_df["Details"] = facts_df["Details"].astype(str)
+    st.table(facts_df)
+
     st.table(facts_df)
 
     st.markdown("### 🚀 Ready to start?")
