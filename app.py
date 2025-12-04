@@ -1962,20 +1962,21 @@ practical language and a professional learning experience.
         )
 
     st.markdown("---")
-    st.markdown("#### Quick course facts")
-    facts_df = pd.DataFrame(
-        [
-            ["Level", COURSE_INFO["level"]],
-            ["Total units", COURSE_INFO["units"]],
-            ["Suggested total hours", COURSE_INFO["total_hours"]],
-            ["Hours per unit (average)", COURSE_INFO["hours_per_unit"]],
-        ],
-        columns=["Item", "Details"],
-    )
-    facts_df["Details"] = facts_df["Details"].astype(str)
-    st.table(facts_df)
+st.markdown("#### Quick course facts")
+facts_df = pd.DataFrame(
+    [
+        ["Level", COURSE_INFO["level"]],
+        ["Total units", COURSE_INFO["units"]],
+        ["Suggested total hours", COURSE_INFO["total_hours"]],
+        ["Hours per unit (average)", COURSE_INFO["total_hours"]],
+        ["Hours per unit (average)", COURSE_INFO["hours_per_unit"]],
+    ],
+    columns=["Item", "Details"],
+)
+# 👇 Esta línea es la clave: todo “Details” pasa a texto
+facts_df["Details"] = facts_df["Details"].astype(str)
+st.table(facts_df)
 
-    st.table(facts_df)
 
     st.markdown("### 🚀 Ready to start?")
     if st.button("Start your first class", use_container_width=True):
