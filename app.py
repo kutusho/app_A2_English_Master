@@ -979,8 +979,9 @@ def render_floating_menu(current_page_id: str):
 
         page_escaped = page_id.replace(" ", "%20")
 
+        # AQUI agregamos target="_self"
         items_html += f"""
-<a class="menu-link-btn {active_class}" href="?page={page_escaped}">
+<a class="menu-link-btn {active_class}" href="?page={page_escaped}" target="_self">
     {icon} {label}
 </a>
 """
@@ -1002,7 +1003,6 @@ def render_floating_menu(current_page_id: str):
 """)
 
     st.markdown(menu_html, unsafe_allow_html=True)
-
 
 # ==========================
 # HELPERS FOR AUDIO & PRESENTATIONS
