@@ -1098,9 +1098,18 @@ def render_floating_menu(current_page_id: str):
         icon = page["icon"]
         is_active = (page_id == current_page_id)
         active_class = "active" if is_active else ""
-        href = f"?page={page_id}"
+
+        # Usamos botones + window.location.search (misma pestaña, sin target="_blank")
+        # Escapamos espacios a %20 por seguridad
+        page_id_escaped = page_id.replace(" ", "%20")
+
         items_html.append(
-            f'<a class="menu-link {active_class}" href="{href}">{icon} {label}</a>'
+            f"""
+            <button class="menu-link-btn {active_class}" type="button"
+                    onclick="window.location.search='?page={page_id_escaped}';">
+                {icon} {label}
+            </button>
+            """
         )
 
     menu_html = f"""
