@@ -1099,8 +1099,7 @@ def render_floating_menu(current_page_id: str):
         is_active = (page_id == current_page_id)
         active_class = "active" if is_active else ""
 
-        # Usamos botones + window.location.search (misma pestaña, sin target="_blank")
-        # Escapamos espacios a %20 por seguridad
+        # Reemplazamos espacios por %20 sólo en la URL
         page_id_escaped = page_id.replace(" ", "%20")
 
         items_html.append(
@@ -1124,7 +1123,10 @@ def render_floating_menu(current_page_id: str):
         </div>
     </div>
     """
+
+    # 🔑 Esta línea es la importante: tiene que ir con unsafe_allow_html=True
     st.markdown(menu_html, unsafe_allow_html=True)
+
 
 
 # ==========================
