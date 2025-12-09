@@ -5,6 +5,7 @@ from pathlib import Path
 import streamlit.components.v1 as components  # Para embeber las presentaciones HTML
 import datetime as dt
 import csv
+import textwrap
 
 # ==========================
 # BASIC CONFIG
@@ -979,28 +980,27 @@ def render_floating_menu(current_page_id: str):
         page_escaped = page_id.replace(" ", "%20")
 
         items_html += f"""
-        <a class="menu-link-btn {active_class}" href="?page={page_escaped}">
-            {icon} {label}
-        </a>
-        """
+<a class="menu-link-btn {active_class}" href="?page={page_escaped}">
+    {icon} {label}
+</a>
+"""
 
-    # Contenedor principal
-    menu_html = f"""
-    <div class="floating-menu-wrapper">
-        <input type="checkbox" id="floating-menu-toggle" class="floating-menu-toggle" />
-        
-        <label for="floating-menu-toggle" class="floating-menu-button">
-            ☰ Menu
-        </label>
+    # Contenedor principal (SIN indentación a la izquierda)
+    menu_html = textwrap.dedent(f"""
+<div class="floating-menu-wrapper">
+  <input type="checkbox" id="floating-menu-toggle" class="floating-menu-toggle" />
+  
+  <label for="floating-menu-toggle" class="floating-menu-button">
+    ☰ Menu
+  </label>
 
-        <div class="floating-menu-panel">
-            <div class="floating-menu-header">Navigate</div>
-            {items_html}
-        </div>
-    </div>
-    """
+  <div class="floating-menu-panel">
+    <div class="floating-menu-header">Navigate</div>
+    {items_html}
+  </div>
+</div>
+""")
 
-    # Renderizar una sola vez
     st.markdown(menu_html, unsafe_allow_html=True)
 
 
