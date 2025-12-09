@@ -946,8 +946,8 @@ def go_to_page(page_id: str):
 
 
 def render_floating_menu(current_page_id: str):
-    items_html = []
-
+    # Construcción de botones HTML
+    items_html = ""
     for page in PAGES:
         page_id = page["id"]
         label = page["label"]
@@ -956,19 +956,15 @@ def render_floating_menu(current_page_id: str):
         is_active = (page_id == current_page_id)
         active_class = "active" if is_active else ""
 
-        # Escapamos espacios por %20
         page_escaped = page_id.replace(" ", "%20")
 
-        items_html.append(
-            f"""
-            <button class="menu-link-btn {active_class}" type="button"
-                onclick="window.location.search='?page={page_escaped}';">
-                {icon} {label}
-            </button>
-            """
-        )
+        items_html += f"""
+        <button class="menu-link-btn {active_class}" onclick="window.location.search='?page={page_escaped}';">
+            {icon} {label}
+        </button>
+        """
 
-    # Menú completo (botón hamburguesa + panel)
+    # Contenedor principal
     menu_html = f"""
     <div class="floating-menu-wrapper">
         <input type="checkbox" id="floating-menu-toggle" class="floating-menu-toggle" />
@@ -979,13 +975,13 @@ def render_floating_menu(current_page_id: str):
 
         <div class="floating-menu-panel">
             <div class="floating-menu-header">Navigate</div>
-            {''.join(items_html)}
+            {items_html}
         </div>
     </div>
     """
 
+    # 👇 ESTA ES LA LÍNEA CRÍTICA
     st.markdown(menu_html, unsafe_allow_html=True)
-
 
 # ==========================
 # HELPERS FOR AUDIO & PRESENTATIONS
