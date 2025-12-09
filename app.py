@@ -967,7 +967,7 @@ def go_to_page(page_id: str):
 
 
 def render_floating_menu(current_page_id: str):
-    # Construcción de "enlaces" como botones (no abren nuevas ventanas)
+    # Construcción de items usando <form method="get"> (sin JS, sin <a>)
     items_html = ""
     for page in PAGES:
         page_id = page["id"]
@@ -977,19 +977,17 @@ def render_floating_menu(current_page_id: str):
         is_active = (page_id == current_page_id)
         active_class = "active" if is_active else ""
 
-        page_escaped = page_id.replace(" ", "%20")
-
-        # Usamos <button> + JS para cambiar la URL en la MISMA ventana
+        # Cada item es un formulario GET que envía ?page=<page_id>
         items_html += f"""
-<button type="button"
-        class="menu-link-btn {active_class}"
-        onclick="document.getElementById('floating-menu-toggle').checked=false;
-                 window.location.search='?page={page_escaped}';">
+<form method="get" style="margin:0; padding:0;">
+  <input type="hidden" name="page" value="{page_id}">
+  <button type="submit" class="menu-link-btn {active_class}">
     {icon} {label}
-</button>
+  </button>
+</form>
 """
 
-    # Contenedor principal (sin indentación a la izquierda)
+    # Contenedor principal
     menu_html = textwrap.dedent(f"""
 <div class="floating-menu-wrapper">
   <input type="checkbox" id="floating-menu-toggle" class="floating-menu-toggle" />
