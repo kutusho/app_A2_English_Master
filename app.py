@@ -1001,11 +1001,9 @@ def render_floating_menu(current_page_id: str):
     </div>
     """
 
+    # Renderizar SOLO una vez, como HTML
     st.markdown(menu_html, unsafe_allow_html=True)
 
-
-    # 👇 ESTA ES LA LÍNEA CRÍTICA
-    st.markdown(menu_html, unsafe_allow_html=True)
 
 # ==========================
 # HELPERS FOR AUDIO & PRESENTATIONS
