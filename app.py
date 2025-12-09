@@ -967,7 +967,7 @@ def go_to_page(page_id: str):
 
 
 def render_floating_menu(current_page_id: str):
-    # Construcción de enlaces HTML
+    # Construcción de "enlaces" como botones (no abren nuevas ventanas)
     items_html = ""
     for page in PAGES:
         page_id = page["id"]
@@ -979,14 +979,17 @@ def render_floating_menu(current_page_id: str):
 
         page_escaped = page_id.replace(" ", "%20")
 
-        # AQUI agregamos target="_self"
+        # Usamos <button> + JS para cambiar la URL en la MISMA ventana
         items_html += f"""
-<a class="menu-link-btn {active_class}" href="?page={page_escaped}" target="_self">
+<button type="button"
+        class="menu-link-btn {active_class}"
+        onclick="document.getElementById('floating-menu-toggle').checked=false;
+                 window.location.search='?page={page_escaped}';">
     {icon} {label}
-</a>
+</button>
 """
 
-    # Contenedor principal (SIN indentación a la izquierda)
+    # Contenedor principal (sin indentación a la izquierda)
     menu_html = textwrap.dedent(f"""
 <div class="floating-menu-wrapper">
   <input type="checkbox" id="floating-menu-toggle" class="floating-menu-toggle" />
