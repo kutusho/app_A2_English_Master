@@ -45,7 +45,8 @@ def inject_global_css():
   --radius-xl: 1.6rem;
 }
 
-/* Fondo general */
+/* ========= LIGHT MODE ========= */
+
 .stApp {
   background: radial-gradient(circle at top left, #ffffff 0%, var(--bg-main) 45%, #c7d2fe 100%);
   color: var(--navy);
@@ -56,28 +57,28 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-/* Contenedor principal */
+/* Contenedor principal (sin esa barra gigante blanca) */
 .main-container {
   max-width: 1180px;
   margin: 1.5rem auto 3rem auto;
   padding: 1.6rem 1.8rem 2.4rem 1.8rem;
-  background: radial-gradient(circle at top left, rgba(255,255,255,0.96), rgba(239,246,255,0.98));
+  background: radial-gradient(circle at top left, rgba(255,255,255,0.98), rgba(239,246,255,0.98));
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-soft);
   border: 1px solid rgba(148,163,184,0.35);
 }
 
-/* Header */
-.header {
+/* Header compacto */
+.header-row {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 1.2rem;
+  gap: 1.2rem;
+  margin-bottom: 1rem;
 }
 
 .header-logo {
-  width: 70px;
-  height: 70px;
+  width: 64px;
+  height: 64px;
   border-radius: 1.2rem;
   background: radial-gradient(circle at top left, #eff6ff 0%, #dbeafe 40%, #bfdbfe 100%);
   display: flex;
@@ -85,8 +86,6 @@ body {
   justify-content: center;
   box-shadow: 0 16px 35px rgba(59,130,246,0.35);
   border: 1px solid rgba(129,140,248,0.6);
-  position: relative;
-  overflow: hidden;
 }
 .header-logo-inner {
   width: 68%;
@@ -98,12 +97,12 @@ body {
   justify-content: center;
   color: #eff6ff;
   font-weight: 800;
-  font-size: 1.6rem;
+  font-size: 1.45rem;
   letter-spacing: 0.04em;
 }
 
 .header-title {
-  font-size: 1.65rem;
+  font-size: 1.6rem;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--navy);
@@ -132,7 +131,7 @@ body {
   padding: 1.1rem 1.3rem;
   background: rgba(255,255,255,0.98);
   border: 1px solid rgba(191,219,254,0.9);
-  box-shadow: 0 16px 30px rgba(148,163,184,0.4);
+  box-shadow: 0 16px 30px rgba(148,163,184,0.35);
   margin-bottom: 1rem;
 }
 .section-card-muted {
@@ -195,14 +194,21 @@ body {
   box-shadow: 0 18px 40px rgba(37,99,235,0.8);
 }
 
-/* Sidebar: volvemos a algo limpio y clásico */
+/* Sidebar flotante en escritorio */
 section[data-testid="stSidebar"] {
-  background: #f8fafc;
+  background: #0f172a;
+  color: #e5e7eb;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  padding-top: 1rem;
 }
 
-/* Bloque principal */
+/* Ajuste del contenido para dejar espacio al sidebar fijo */
 .block-container {
   padding-top: 1.2rem;
+  padding-left: 17rem; /* ancho aproximado del sidebar */
 }
 
 /* H1–H3 */
@@ -210,23 +216,82 @@ h1, h2, h3 {
   letter-spacing: -0.02em;
 }
 
-/* Mobile */
-@media (max-width: 768px) {
+/* Mobile: sidebar normal, sin flotante para que no se rompa */
+@media (max-width: 900px) {
+  section[data-testid="stSidebar"] {
+    position: static;
+    height: auto;
+  }
+  .block-container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
   .main-container {
-    margin: 0.8rem 0.3rem 2.8rem 0.3rem;
+    margin: 0.8rem 0.2rem 2.8rem 0.2rem;
     padding: 1.1rem 1rem 1.9rem 1rem;
   }
   .header-title {
     font-size: 1.45rem;
   }
   .header-logo {
-    width: 62px;
-    height: 62px;
+    width: 58px;
+    height: 58px;
   }
 }
 
 /* Ocultamos footer de Streamlit */
 footer { visibility: hidden; }
+
+/* ========= DARK MODE ========= */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-main: #020617;
+    --bg-soft: #020617;
+    --bg-card: #020617;
+    --navy: #e5e7eb;
+    --text-main: #e5e7eb;
+    --text-soft: #9ca3af;
+    --border-soft: #1f2937;
+    --shadow-soft: 0 18px 45px rgba(0,0,0,0.9);
+  }
+
+  .stApp {
+    background: radial-gradient(circle at top left, #020617 0%, #020617 45%, #020617 100%);
+    color: var(--text-main);
+  }
+
+  .main-container {
+    background: radial-gradient(circle at top left, #020617, #020617);
+    border: 1px solid rgba(55,65,81,0.9);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.9);
+  }
+
+  .header-title {
+    color: var(--text-main);
+  }
+
+  .header-logo {
+    background: radial-gradient(circle at top left, #0f172a 0%, #1e293b 40%, #1d4ed8 100%);
+    border-color: rgba(129,140,248,0.9);
+  }
+
+  .section-card {
+    background: #020617;
+    color: var(--text-main);
+    border: 1px solid rgba(55,65,81,0.9);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.9);
+  }
+
+  .overview-card {
+    background: radial-gradient(circle at top left, #020617, #020617);
+    border: 1px solid rgba(55,65,81,0.9);
+  }
+
+  section[data-testid="stSidebar"] {
+    background: #020617;
+    border-right: 1px solid rgba(31,41,55,0.9);
+  }
+}
 </style>
         """,
         unsafe_allow_html=True,
@@ -249,7 +314,6 @@ UNITS = [
     {"number": 10, "name": "Review and final project"},
 ]
 
-# Para Units 1–3 detallamos; Units 4–10 quedan como placeholder listos
 LESSONS = {
     1: [
         {
@@ -389,7 +453,6 @@ LESSONS = {
     ],
 }
 
-# Units 4–10: tres clases genéricas cada una (ya están “todas las lecciones” en estructura)
 for unit_num in range(4, 11):
     if unit_num not in LESSONS:
         LESSONS[unit_num] = [
@@ -533,7 +596,7 @@ def access_panel():
         st.info("Admin mode is only for you. Use a private access code.")
         admin_code = st.text_input("Admin access code", type="password")
         if st.button("Login as admin"):
-            # Código muy simple – cámbialo por algo que solo tú conozcas
+            # Cambia este código por uno que solo tú conozcas
             if admin_code == "FLUNEX-ADMIN-2025":
                 st.session_state["role"] = "admin"
                 st.session_state["is_admin"] = True
@@ -550,23 +613,12 @@ def overview_page():
 
     st.markdown('<div class="main-container">', unsafe_allow_html=True)
 
-    # Header
-    col_h1, col_h2 = st.columns([1, 3], vertical_alignment="center")
-    with col_h1:
-        st.markdown(
-            """
-<div class="header">
+    st.markdown(
+        """
+<div class="header-row">
   <div class="header-logo">
     <div class="header-logo-inner">A2</div>
   </div>
-</div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with col_h2:
-        st.markdown(
-            """
-<div class="header">
   <div>
     <div class="header-title">A2 English Master</div>
     <div class="header-subtitle">
@@ -574,9 +626,9 @@ def overview_page():
     </div>
   </div>
 </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        """,
+        unsafe_allow_html=True,
+    )
 
     access_panel()
 
@@ -728,116 +780,33 @@ def instructor_page():
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ==========================
-# UNIT 1 – SESSIONS (mismas que versión anterior)
+# UNIT 1 – SESSIONS (resumen)
 # ==========================
 
 def render_unit1_session1_hour1():
     st.subheader("Unit 1 – Session 1 · 1st Hour – Grammar & Writing")
     st.markdown("### Theme: Meeting people & introductions")
-
-    st.markdown("### ✅ Objectives")
-    st.markdown(
-        "- Use the verb **be** (am/is/are) to talk about name, country and job.\n"
-        "- Use **subject pronouns** (I, you, he, she, we, they).\n"
-        "- Write a short introduction about yourself."
-    )
-
-    st.markdown("### ✏️ Warm-up – Who are you?")
-    st.write("Think about these questions and be ready to share:")
-    st.markdown(
-        "- What is your name?\n"
-        "- Where are you from?\n"
-        "- What do you do (study or job)?"
-    )
-
-    st.markdown("### 🧩 Grammar – Verb be (am/is/are)")
-    st.markdown(
-        """
-We use **be** to talk about who we are, where we are from and our job.
-
-**Affirmative forms:**
-
-- I **am** (I'm)
-- You **are** (You're)
-- He/She/It **is** (He's / She's / It's)
-- We/They **are** (We're / They're)
-        """
-    )
-
-    st.markdown("**Examples:**")
-    st.markdown(
-        """
-- I’m Iván. I’m from Mexico.  
-- She’s Anna. She’s a teacher.  
-- We’re students. We’re from Chiapas.
-        """
-    )
-
-    st.markdown("### ✍️ Practice – Complete the sentences")
-    st.markdown(
-        """
-1. I ___ Iván. I ___ from Mexico.  
-2. She ___ Laura. She ___ a doctor.  
-3. We ___ students. We ___ from Chiapas.  
-4. They ___ friends. They ___ from Spain.  
-        """
-    )
-
-    st.markdown("### ✍️ Writing – Introduce yourself")
-    st.write("Write **4–5 sentences** to introduce yourself.")
+    st.markdown("Work with verb **be**, subject pronouns and a short introduction about yourself.")
 
 def render_unit1_session1_hour2():
     st.subheader("Unit 1 – Session 1 · 2nd Hour – Listening & Speaking")
-    st.markdown("### Theme: Meeting people & introductions")
-
-    st.markdown("### 🎯 Objectives")
-    st.markdown(
-        "- Understand introductions in simple conversations.\n"
-        "- Practise saying your name, country and job.\n"
-        "- Ask and answer basic questions."
-    )
-
-    st.markdown("### 🔊 Listening 1 – Introductions at a conference")
     _audio_or_warning("U1_S1_audio1_introductions.mp3")
-
-    st.markdown("### 🔊 Listening 2 – Spelling names")
     _audio_or_warning("U1_S1_audio2_spelling_names.mp3")
-
-    st.markdown("### 🗣️ Speaking task – Introduce yourself")
-    st.markdown("Practise with a partner or record yourself.")
 
 def render_unit1_session2_hour1():
     st.subheader("Unit 1 – Session 2 · 1st Hour – Grammar & Writing")
     st.markdown("### Theme: Describing people & appearance")
 
-    st.markdown("### ✅ Objectives")
-    st.markdown(
-        "- Use adjectives to describe physical appearance.\n"
-        "- Use **have/has** to talk about hair, eyes and accessories.\n"
-        "- Write a short description of a person."
-    )
-
-    st.markdown("### ✏️ Warm-up – People around you")
-    st.write("Think of a person you know well.")
-    st.markdown(
-        "- What do they look like?\n"
-        "- How tall are they?\n"
-        "- What kind of hair do they have?"
-    )
-
 def render_unit1_session2_hour2():
     st.subheader("Unit 1 – Session 2 · 2nd Hour – Listening & Speaking")
-    st.markdown("### Theme: Describing people & appearance")
     _audio_or_warning("U1_S2_audio1_describing_friend.mp3")
 
 def render_unit1_session3_hour1():
     st.subheader("Unit 1 – Session 3 · 1st Hour – Grammar & Writing")
     st.markdown("### Theme: Personality & describing others")
-    st.markdown("Work with personality adjectives and a short description of someone you admire.")
 
 def render_unit1_session3_hour2():
     st.subheader("Unit 1 – Session 3 · 2nd Hour – Listening & Speaking")
-    st.markdown("### Theme: Personality & describing others")
     _audio_or_warning("U1_S3_audio1_describing_colleague.mp3")
 
 # ==========================
@@ -916,8 +885,6 @@ def render_unit2_session1_hour1():
 
 def render_unit2_session1_hour2():
     st.subheader("Unit 2 – Session 1 · 2nd Hour – Listening & Speaking")
-    st.markdown("### Theme: Daily routines (listening & speaking)")
-
     _audio_or_warning("U2_S1_audio1_intro.mp3")
     _audio_or_warning("U2_S1_audio2_routines_vocab.mp3")
     _audio_or_warning("U2_S1_audio3_two_routines.mp3")
@@ -972,7 +939,6 @@ def render_unit2_session2_hour1():
 
 def render_unit2_session2_hour2():
     st.subheader("Unit 2 – Session 2 · 2nd Hour – Listening & Speaking")
-    st.markdown("### Theme: Free time (listening & survey)")
     _audio_or_warning("U2_S2_audio1_free_time_dialogues.mp3")
     _audio_or_warning("U2_S2_audio2_survey_results.mp3")
 
@@ -1009,7 +975,6 @@ def render_unit2_session3_hour1():
 
 def render_unit2_session3_hour2():
     st.subheader("Unit 2 – Session 3 · 2nd Hour – Listening & Speaking")
-    st.markdown("### Theme: Habits & lifestyle (listening & speaking)")
     _audio_or_warning("U2_S3_audio1_two_lifestyles.mp3")
     _audio_or_warning("U2_S3_audio2_expert_tips.mp3")
 
@@ -1020,7 +985,6 @@ def render_unit2_session3_hour2():
 def render_unit3_session1_hour1():
     st.subheader("Unit 3 – Session 1 · 1st Hour – Grammar & Writing")
     st.markdown("### Theme: Talking about last weekend")
-    st.write("Content to be expanded – structure ready.")
 
 def render_unit3_session1_hour2():
     st.subheader("Unit 3 – Session 1 · 2nd Hour – Listening & Speaking")
