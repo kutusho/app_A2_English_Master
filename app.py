@@ -124,7 +124,6 @@ def inject_global_css():
     st.markdown(
         """
 <style>
-
 .floating-menu-wrapper {
     position: fixed;
     top: 4.5rem;
@@ -132,10 +131,12 @@ def inject_global_css():
     z-index: 2000;
 }
 
+/* Escondemos el checkbox */
 .floating-menu-toggle {
     display: none;
 }
 
+/* Botón redondo "Menu" */
 .floating-menu-button {
     background: linear-gradient(135deg, #1f4b99, #274b8f);
     color: #ffffff;
@@ -150,11 +151,12 @@ def inject_global_css():
     align-items: center;
 }
 
+/* Panel flotante */
 .floating-menu-panel {
     position: absolute;
     top: 3.1rem;
     left: 0;
-    background-color: var(--card-bg);
+    background-color: #ffffff;
     border-radius: 0.9rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
     padding: 0.6rem;
@@ -165,24 +167,36 @@ def inject_global_css():
     transition: all 0.18s ease-out;
 }
 
-/* Mostrar el menú */
+/* Mostrar el menú cuando el checkbox está activado */
 .floating-menu-toggle:checked ~ .floating-menu-panel {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
 }
 
-/* Los botones reemplazan los <a> */
+/* Cabecera del panel */
+.floating-menu-header {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.35rem;
+    color: #4b5563;
+}
+
+/* Enlaces del menú (funcionan para <a>) */
 .menu-link-btn {
     width: 100%;
+    display: block;
     text-align: left;
     padding: 0.5rem 0.7rem;
     border-radius: 0.55rem;
     border: none;
     background: transparent;
     cursor: pointer;
-    color: var(--navy);
+    color: #111827;
     font-size: 0.9rem;
+    text-decoration: none;
 }
 
 .menu-link-btn:hover {
@@ -195,7 +209,14 @@ def inject_global_css():
     font-weight: 600;
 }
 
+/* Modo oscuro del sistema */
 @media (prefers-color-scheme: dark) {
+    .floating-menu-panel {
+        background-color: #020617;
+    }
+    .floating-menu-header {
+        color: #9ca3af;
+    }
     .menu-link-btn {
         color: #e5e7eb;
     }
@@ -206,11 +227,11 @@ def inject_global_css():
         background-color: #1d4ed8;
     }
 }
-
 </style>
         """,
         unsafe_allow_html=True
     )
+
 
 # ==========================
 # COURSE DATA
@@ -946,7 +967,7 @@ def go_to_page(page_id: str):
 
 
 def render_floating_menu(current_page_id: str):
-    # Construcción de botones HTML
+    # Construcción de enlaces HTML
     items_html = ""
     for page in PAGES:
         page_id = page["id"]
@@ -959,9 +980,9 @@ def render_floating_menu(current_page_id: str):
         page_escaped = page_id.replace(" ", "%20")
 
         items_html += f"""
-        <button class="menu-link-btn {active_class}" onclick="window.location.search='?page={page_escaped}';">
+        <a class="menu-link-btn {active_class}" href="?page={page_escaped}">
             {icon} {label}
-        </button>
+        </a>
         """
 
     # Contenedor principal
@@ -979,6 +1000,9 @@ def render_floating_menu(current_page_id: str):
         </div>
     </div>
     """
+
+    st.markdown(menu_html, unsafe_allow_html=True)
+
 
     # 👇 ESTA ES LA LÍNEA CRÍTICA
     st.markdown(menu_html, unsafe_allow_html=True)
