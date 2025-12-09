@@ -569,8 +569,10 @@ def render_floating_menu(current_page_id: str):
         is_active = (page_id == current_page_id)
         active_class = "active" if is_active else ""
         href = f"?page={page_id}"
+
+        # 🔹 IMPORTANTE: target="_self" para que SIEMPRE navegue en la MISMA ventana
         items_html.append(
-            f'<a class="menu-link {active_class}" href="{href}">{icon} {label}</a>'
+            f'<a class="menu-link {active_class}" href="{href}" target="_self">{icon} {label}</a>'
         )
 
     menu_html = f"""
@@ -586,6 +588,7 @@ def render_floating_menu(current_page_id: str):
     </div>
     """
     st.markdown(menu_html, unsafe_allow_html=True)
+
 
 
 # ==========================
