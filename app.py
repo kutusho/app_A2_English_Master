@@ -124,114 +124,12 @@ def inject_global_css():
     st.markdown(
         """
 <style>
-/* ========= PALETA BASE (MODO CLARO) ========= */
-:root {
-  --bg-main: #eef3fb;
-  --bg-soft: #f9fafb;
-  --card-bg: #ffffff;
-  --navy: #111827;
-  --navy-soft: #1f2937;
-  --accent-blue: #1d4ed8;
-  --accent-blue-soft: #2563eb;
-  --accent-red: #b91c1c;
-  --accent-gold: #eab308;
-  --muted: #6b7280;
-  --border-subtle: rgba(15, 23, 42, 0.12);
-  --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.18);
-}
 
-/* ========= PALETA PARA MODO OSCURO ========= */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-main: #020617;
-    --bg-soft: #020617;
-    --card-bg: #020617;
-    --navy: #e5e7eb;
-    --navy-soft: #f9fafb;
-    --accent-blue: #60a5fa;
-    --accent-blue-soft: #3b82f6;
-    --accent-red: #fb7185;
-    --accent-gold: #facc15;
-    --muted: #9ca3af;
-    --border-subtle: rgba(148, 163, 184, 0.4);
-    --shadow-soft: 0 22px 60px rgba(0, 0, 0, 0.9);
-  }
-}
-
-/* ========= RESET SUAVE ========= */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
-/* Fondo general */
-body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-/* Fondo de toda la app */
-.stApp {
-  background: radial-gradient(circle at top left, #ffffff 0%, var(--bg-main) 45%, #c7d2fe 100%);
-  color: var(--navy);
-  min-height: 100vh;
-}
-
-@media (prefers-color-scheme: dark) {
-  .stApp {
-    background: radial-gradient(circle at top left, #020617 0%, #020617 45%, #020617 100%);
-  }
-}
-
-/* Contenedor principal de Streamlit */
-.main .block-container {
-  max-width: 1100px;
-  padding-top: 3rem;
-  padding-bottom: 3rem;
-}
-
-/* Títulos y texto */
-h1, h2, h3 {
-  color: var(--navy-soft);
-}
-
-h1 {
-  font-weight: 800 !important;
-}
-
-@media (prefers-color-scheme: dark) {
-  h1, h2, h3 {
-    color: var(--navy-soft);
-  }
-}
-
-/* Tablas más limpias */
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-table thead tr th {
-  background-color: rgba(248, 250, 252, 0.9);
-  color: var(--navy-soft);
-  font-weight: 600;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-table tbody tr td {
-  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
-}
-
-/* Cards suaves para cajas de contenido de Streamlit */
-.stAlert, .stTable, .stDataFrame, .stMarkdown, .element-container {
-  border-radius: 18px;
-}
-
-/* ========= MENÚ FLOTANTE SUPERIOR IZQUIERDA ========= */
 .floating-menu-wrapper {
     position: fixed;
     top: 4.5rem;
     left: 1.4rem;
     z-index: 2000;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .floating-menu-toggle {
@@ -247,63 +145,44 @@ table tbody tr td {
     font-weight: 600;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
     cursor: pointer;
+    border: none;
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    border: none;
-    user-select: none;
-    white-space: nowrap;
-}
-
-.floating-menu-button:hover {
-    filter: brightness(1.05);
 }
 
 .floating-menu-panel {
     position: absolute;
     top: 3.1rem;
     left: 0;
-    background-color: #ffffff;
+    background-color: var(--card-bg);
     border-radius: 0.9rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
     padding: 0.6rem;
-    min-width: 240px;
+    min-width: 220px;
     opacity: 0;
     pointer-events: none;
     transform: translateY(-10px);
     transition: all 0.18s ease-out;
 }
 
-@media (prefers-color-scheme: dark) {
-  .floating-menu-panel {
-      background-color: #020617;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-  }
+/* Mostrar el menú */
+.floating-menu-toggle:checked ~ .floating-menu-panel {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
 }
 
-.floating-menu-header {
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #555;
-    margin-bottom: 0.4rem;
-    padding: 0 0.2rem;
-}
-
-/* Botones del menú en lugar de enlaces */
+/* Los botones reemplazan los <a> */
 .menu-link-btn {
-    display: block;
     width: 100%;
     text-align: left;
-    padding: 0.4rem 0.5rem;
+    padding: 0.5rem 0.7rem;
     border-radius: 0.55rem;
     border: none;
     background: transparent;
-    font-size: 0.9rem;
-    color: #222;
-    margin-bottom: 0.15rem;
     cursor: pointer;
+    color: var(--navy);
+    font-size: 0.9rem;
 }
 
 .menu-link-btn:hover {
@@ -312,50 +191,26 @@ table tbody tr td {
 
 .menu-link-btn.active {
     background-color: #1f4b99;
-    color: #ffffff;
+    color: white;
     font-weight: 600;
 }
 
 @media (prefers-color-scheme: dark) {
-  .menu-link-btn {
-      color: #e5e7eb;
-  }
-  .menu-link-btn:hover {
-      background-color: #0f172a;
-  }
-  .menu-link-btn.active {
-      background-color: #1d4ed8;
-      color: #f9fafb;
-  }
-}
-
-
-/* Toggle behaviour */
-.floating-menu-toggle:checked ~ .floating-menu-panel {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0);
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-    .floating-menu-wrapper {
-        top: 4.0rem;
-        left: 1rem;
+    .menu-link-btn {
+        color: #e5e7eb;
     }
-    .floating-menu-button {
-        padding: 0.45rem 1.1rem;
-        font-size: 0.9rem;
+    .menu-link-btn:hover {
+        background-color: #0f172a;
     }
-    .floating-menu-panel {
-        min-width: 200px;
+    .menu-link-btn.active {
+        background-color: #1d4ed8;
     }
 }
+
 </style>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
-
 
 # ==========================
 # COURSE DATA
@@ -1092,31 +947,36 @@ def go_to_page(page_id: str):
 
 def render_floating_menu(current_page_id: str):
     items_html = []
+
     for page in PAGES:
         page_id = page["id"]
         label = page["label"]
         icon = page["icon"]
+
         is_active = (page_id == current_page_id)
         active_class = "active" if is_active else ""
 
-        # Reemplazamos espacios por %20 sólo en la URL
-        page_id_escaped = page_id.replace(" ", "%20")
+        # Escapamos espacios por %20
+        page_escaped = page_id.replace(" ", "%20")
 
         items_html.append(
             f"""
             <button class="menu-link-btn {active_class}" type="button"
-                    onclick="window.location.search='?page={page_id_escaped}';">
+                onclick="window.location.search='?page={page_escaped}';">
                 {icon} {label}
             </button>
             """
         )
 
+    # Menú completo (botón hamburguesa + panel)
     menu_html = f"""
     <div class="floating-menu-wrapper">
         <input type="checkbox" id="floating-menu-toggle" class="floating-menu-toggle" />
+        
         <label for="floating-menu-toggle" class="floating-menu-button">
             ☰ Menu
         </label>
+
         <div class="floating-menu-panel">
             <div class="floating-menu-header">Navigate</div>
             {''.join(items_html)}
@@ -1124,9 +984,7 @@ def render_floating_menu(current_page_id: str):
     </div>
     """
 
-    # 🔑 Esta línea es la importante: tiene que ir con unsafe_allow_html=True
     st.markdown(menu_html, unsafe_allow_html=True)
-
 
 
 # ==========================
