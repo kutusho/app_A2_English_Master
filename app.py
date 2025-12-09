@@ -184,7 +184,7 @@ def inject_global_css():
     color: #4b5563;
 }
 
-/* Enlaces del menú (funcionan para <a>) */
+/* Enlaces del menú (<a>) */
 .menu-link-btn {
     width: 100%;
     display: block;
@@ -412,7 +412,6 @@ UNITS = [
 
 # ==========================
 # LESSONS BY UNIT
-# (igual que en tu script anterior)
 # ==========================
 
 LESSONS = {
@@ -1001,7 +1000,7 @@ def render_floating_menu(current_page_id: str):
     </div>
     """
 
-    # Renderizar SOLO una vez, como HTML
+    # Renderizar una sola vez
     st.markdown(menu_html, unsafe_allow_html=True)
 
 
@@ -1033,19 +1032,8 @@ def render_presentation_html(filename: str):
 
 
 # ==========================
-# UNIT 1 – SESSIONS (igual que tenías)
-# ==========================
-# ... (tus funciones render_unit1_session1_hour1, hour2, session2, session3, etc.)
-# Para mantener la respuesta más ligera, las dejo omitidas aquí,
-# pero en tu archivo real conserva exactamente las que ya tienes.
-
-
-# === A partir de aquí te incluyo SOLO Unidad 2, ya con answer boxes ===
-# Si quieres, puedes dejar Unidad 1 igual, sin cambios.
-
-
-# ==========================
-# UNIT 2 – SESSION 1
+# UNIT 2 – SESSIONS
+# (Unidad 1 la conservas como ya la tenías si la usas)
 # ==========================
 
 def render_unit2_session1_hour1():
@@ -1066,7 +1054,7 @@ def render_unit2_session1_hour1():
         "- What do you do in the morning?\n"
         "- What do you do in the afternoon and evening?"
     )
-    st.info('Example: *\"I get up at 7:00. I have breakfast, then I go to work.\"*')
+    st.info('Example: *"I get up at 7:00. I have breakfast, then I go to work."*')
 
     st.markdown("### 🧩 Grammar – Present simple (affirmative)")
     st.markdown(
@@ -1114,7 +1102,7 @@ def render_unit2_session1_hour1():
             "- Before the main verb: *I **usually** get up at 7:00.*\n"
             "- After **be**: *She is **often** late.*"
         )
-        st.info('Example: *\"I sometimes have breakfast at a café.\"*')
+        st.info('Example: *"I sometimes have breakfast at a café."*')
 
     st.markdown("### ✍️ Controlled practice – Frequency")
     st.markdown(
@@ -1211,10 +1199,6 @@ def render_unit2_session1_hour2():
     unit2_answer_box("S1", "H2", "listening_notes", "Listening notes and answers")
     unit2_answer_box("S1", "H2", "speaking", "Speaking – My day (notes)")
 
-
-# ==========================
-# UNIT 2 – SESSION 2
-# ==========================
 
 def render_unit2_session2_hour1():
     st.subheader("Unit 2 – Session 2 · 1st Hour – Grammar & Writing")
@@ -1333,10 +1317,6 @@ def render_unit2_session2_hour2():
     unit2_answer_box("S2", "H2", "survey_notes", "Survey results – notes")
     unit2_answer_box("S2", "H2", "summary", "Final summary to present")
 
-
-# ==========================
-# UNIT 2 – SESSION 3
-# ==========================
 
 def render_unit2_session3_hour1():
     st.subheader("Unit 2 – Session 3 · 1st Hour – Grammar & Writing")
@@ -1645,9 +1625,6 @@ def lessons_page():
             render_unit2_session3_hour1()
         else:
             render_unit2_session3_hour2()
-
-    # (Aquí podrías volver a enganchar las sesiones de la Unidad 1 como antes,
-    # si quieres mantener el modo "Mobile class + Presentation" de esa unidad.)
 
 
 def assessment_page():
