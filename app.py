@@ -291,25 +291,44 @@ table tbody tr td {
     padding: 0 0.2rem;
 }
 
-.menu-link {
+/* Botones del menú en lugar de enlaces */
+.menu-link-btn {
     display: block;
+    width: 100%;
+    text-align: left;
     padding: 0.4rem 0.5rem;
     border-radius: 0.55rem;
-    text-decoration: none;
+    border: none;
+    background: transparent;
     font-size: 0.9rem;
     color: #222;
     margin-bottom: 0.15rem;
+    cursor: pointer;
 }
 
-.menu-link:hover {
+.menu-link-btn:hover {
     background-color: #f1f4fb;
 }
 
-.menu-link.active {
+.menu-link-btn.active {
     background-color: #1f4b99;
     color: #ffffff;
     font-weight: 600;
 }
+
+@media (prefers-color-scheme: dark) {
+  .menu-link-btn {
+      color: #e5e7eb;
+  }
+  .menu-link-btn:hover {
+      background-color: #0f172a;
+  }
+  .menu-link-btn.active {
+      background-color: #1d4ed8;
+      color: #f9fafb;
+  }
+}
+
 
 /* Toggle behaviour */
 .floating-menu-toggle:checked ~ .floating-menu-panel {
