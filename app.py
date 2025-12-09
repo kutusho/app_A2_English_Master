@@ -18,6 +18,9 @@ BASE_DIR = Path(__file__).parent if "__file__" in globals() else Path(os.getcwd(
 AUDIO_DIR = BASE_DIR / "audio"
 STATIC_DIR = BASE_DIR / "static"  # aquí irán las presentaciones HTML
 
+# Admin code (cámbialo o usa variable de entorno ENGLISH_MASTER_ADMIN_CODE)
+ADMIN_ACCESS_CODE = os.getenv("ENGLISH_MASTER_ADMIN_CODE", "A2-ADMIN-2025")
+
 
 # ==========================
 # GLOBAL STYLES (BRANDING + DARK MODE FRIENDLY)
@@ -236,6 +239,28 @@ table tbody tr td {
     }
 }
 
+/* ========= BOTONES REDONDOS GLOBAL ========= */
+div.stButton > button {
+  border-radius: 999px;
+  padding: 0.6rem 1.6rem;
+  font-weight: 600;
+  border: none;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-soft));
+  color: #ffffff;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.45);
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+}
+
+div.stButton > button:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+div.stButton > button:active {
+  transform: translateY(0);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.55);
+}
 </style>
         """,
         unsafe_allow_html=True,
@@ -931,6 +956,8 @@ PAGES = [
     {"id": "Assessment & Progress", "label": "Assessment", "icon": "📝"},
     {"id": "Instructor", "label": "Instructor", "icon": "👨‍🏫"},
     {"id": "Enter your class", "label": "Class", "icon": "🎓"},
+    {"id": "Access", "label": "Access", "icon": "🔐"},
+    {"id": "Admin", "label": "Admin", "icon": "⚙️"},
 ]
 
 def _get_query_params():
@@ -975,7 +1002,6 @@ def render_floating_menu(current_page_id: str):
         is_active = (page_id == current_page_id)
         active_class = "active" if is_active else ""
         href = f"?page={page_id}"
-        # 🔹 IMPORTANTE: target="_self" para que siempre navegue en la misma ventana
         items_html.append(
             f'<a class="menu-link {active_class}" href="{href}" target="_self">{icon} {label}</a>'
         )
@@ -1973,7 +1999,6 @@ practical language and a professional learning experience.
         ],
         columns=["Item", "Details"],
     )
-    # 👇 Esta línea es la clave: todo “Details” pasa a texto
     facts_df["Details"] = facts_df["Details"].astype(str)
     st.table(facts_df)
 
@@ -2269,6 +2294,156 @@ actually experience in their daily life and work.
 
 
 # ==========================
+# ACCESS (LOGIN / REGISTER / ADMIN CODE)
+# ==========================
+
+def access_page():
+    show_logo()
+    st.title("🔐 Access · Login & Registration")
+    st.caption("Acceso para estudiantes y panel de administrador (con código).")
+
+    col_left, col_right = st.columns([1.3, 1])
+
+    with col_left:
+        tab_login, tab_register, tab_admin = st.tabs(
+            ["Student login", "Student registration", "Admin access"]
+        )
+
+        # --- Student login ---
+        with tab_login:
+            st.subheader("Student login")
+            st.write("Log in to quickly open your classes from this device.")
+
+            with st.form("login_form"):
+                email = st.text_input("Email")
+                name = st.text_input("Name (optional)")
+                password = st.text_input("Password", type="password")
+                login_submit = st.form_submit_button("Log in")
+
+            if login_submit:
+                if email and password:
+                    st.session_state["is_authenticated"] = True
+                    st.session_state["user_role"] = "student"
+                    st.session_state["user_name"] = name or email
+                    st.success(f"Welcome, {st.session_state['user_name']}! ✅")
+                    if st.button("Go to your classes →", key="go_classes_from_login"):
+                        go_to_page("Enter your class")
+                else:
+                    st.error("Please enter at least your email and password.")
+
+        # --- Student registration ---
+        with tab_register:
+            st.subheader("Student registration")
+            st.write(
+                "Create a simple profile to start using the platform. "
+                "(Prototype – data is stored only in this session)."
+            )
+
+            with st.form("register_form"):
+                reg_name = st.text_input("Full name")
+                reg_email = st.text_input("Email")
+                reg_level = st.selectbox(
+                    "Current English level",
+                    ["A1", "A2", "B1", "B2", "I’m not sure"]
+                )
+                reg_submit = st.form_submit_button("Register")
+
+            if reg_submit:
+                if reg_name and reg_email:
+                    st.session_state["last_registered_user"] = {
+                        "name": reg_name,
+                        "email": reg_email,
+                        "level": reg_level,
+                    }
+                    st.success(f"Registration saved for {reg_name}. 🎉")
+                    st.info(
+                        "In a future version this will connect to your database or Google Sheets."
+                    )
+                else:
+                    st.error("Please complete at least name and email.")
+
+        # --- Admin access ---
+        with tab_admin:
+            st.subheader("Admin access")
+            st.write("Enter with the secret admin code to open the control panel.")
+
+            with st.form("admin_form"):
+                code = st.text_input("Admin access code", type="password")
+                admin_submit = st.form_submit_button("Access as admin")
+
+            if admin_submit:
+                if code == ADMIN_ACCESS_CODE:
+                    st.session_state["is_authenticated"] = True
+                    st.session_state["user_role"] = "admin"
+                    st.session_state["user_name"] = "Administrator"
+                    st.success("Admin access granted. ⚙️")
+                    if st.button("Open admin panel →", key="go_admin_from_access"):
+                        go_to_page("Admin")
+                else:
+                    st.error("Incorrect code. Please try again.")
+
+    with col_right:
+        st.markdown("### 👀 What can you do here?")
+        st.markdown(
+            """
+- Save a basic student profile on this device  
+- Quickly open your classes after login  
+- Enter the **admin panel** with a secret code  
+            """
+        )
+
+        if st.session_state.get("is_authenticated"):
+            st.success(
+                f"Current session: {st.session_state.get('user_name', 'user')} "
+                f"({st.session_state.get('user_role', 'student')})"
+            )
+            if st.button("Log out", key="logout_button"):
+                st.session_state.clear()
+                _rerun()
+        else:
+            st.info("You are not logged in yet.")
+
+
+# ==========================
+# ADMIN PANEL (CODE ONLY)
+# ==========================
+
+def admin_page():
+    show_logo()
+    st.title("⚙️ Admin panel")
+
+    role = st.session_state.get("user_role", "guest")
+    if role != "admin":
+        st.error("Admin code required. Please go to the Access page and enter the admin code.")
+        if st.button("Go to Access page"):
+            go_to_page("Access")
+        return
+
+    st.success("Admin mode active. Welcome.")
+
+    st.markdown("### Overview")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Active students", "—")
+    with col2:
+        st.metric("Units available", len(UNITS))
+    with col3:
+        st.metric("Created today", "—")
+
+    st.markdown("### Next steps for this panel")
+    st.markdown(
+        """
+In future iterations, this admin area can include:
+
+- Student list and individual progress  
+- Automatic certificate generation  
+- Control of audio files and presentations  
+- Configuration of access codes and groups  
+        """
+    )
+
+
+# ==========================
 # PAGE ROUTER
 # ==========================
 
@@ -2283,6 +2458,10 @@ def render_page(page_id: str):
         instructor_page()
     elif page_id == "Enter your class":
         lessons_page()
+    elif page_id == "Access":
+        access_page()
+    elif page_id == "Admin":
+        admin_page()
     else:
         overview_page()
 
