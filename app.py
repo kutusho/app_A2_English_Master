@@ -1768,7 +1768,6 @@ Complete:
         )
 
         st.success("Great job! 🥗 Keep using this food vocabulary in real life.")
-=======
     st.markdown("---")
     unit2_answer_box("S3", "H2", "listening", "Listening answers / notes")
     unit2_answer_box("S3", "H2", "advice", "Advice for a healthier lifestyle")
