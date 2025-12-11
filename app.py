@@ -3,6 +3,9 @@ import pandas as pd
 import os
 from pathlib import Path
 import streamlit.components.v1 as components  # Para embeber las presentaciones HTML
+import datetime as dt
+import csv
+import textwrap
 
 # ==========================
 # BASIC CONFIG
@@ -17,6 +20,101 @@ st.set_page_config(
 BASE_DIR = Path(__file__).parent if "__file__" in globals() else Path(os.getcwd())
 AUDIO_DIR = BASE_DIR / "audio"
 STATIC_DIR = BASE_DIR / "static"  # aquí irán las presentaciones HTML
+RESPONSES_DIR = BASE_DIR / "responses"
+RESPONSES_DIR.mkdir(exist_ok=True)
+RESPONSES_FILE = RESPONSES_DIR / "unit2_responses.csv"
+
+# ==========================
+# ADMIN / AUTH CONFIG
+# ==========================
+ADMIN_ACCESS_CODE = os.getenv("ENGLISH_MASTER_ADMIN_CODE", "A2-ADMIN-2025")
+
+
+def init_session():
+    if "auth" not in st.session_state:
+        st.session_state["auth"] = {
+            "logged_in": False,
+            "role": "guest",   # guest | student | admin
+            "name": "",
+            "email": "",
+        }
+
+
+def get_current_user():
+    auth = st.session_state.get("auth", {})
+    return (
+        auth.get("name", ""),
+        auth.get("email", ""),
+        auth.get("role", "guest"),
+    )
+
+
+def save_unit2_response(user_email, user_name, session, hour, exercise_id, text):
+    """
+    Guarda una respuesta de la Unidad 2 en responses/unit2_responses.csv
+    session: 'S1' | 'S2' | 'S3'
+    hour: 'H1' | 'H2'
+    exercise_id: string corto tipo 'grammar', 'writing', etc.
+    """
+    RESPONSES_DIR.mkdir(exist_ok=True)
+    row = {
+        "timestamp": dt.datetime.now().isoformat(timespec="seconds"),
+        "user_email": user_email or "",
+        "user_name": user_name or "",
+        "unit": 2,
+        "session": session,
+        "hour": hour,
+        "exercise_id": exercise_id,
+        "response": (text or "").replace("\n", "\\n"),
+    }
+    try:
+        file_exists = RESPONSES_FILE.exists()
+        with open(RESPONSES_FILE, "a", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=row.keys())
+            if not file_exists:
+                writer.writeheader()
+            writer.writerow(row)
+        return True, "Answer saved."
+    except Exception as e:
+        return False, f"Error saving answer: {e}"
+
+
+def unit2_answer_box(session, hour, exercise_id, label, height=180):
+    """
+    Pequeño componente reutilizable:
+    - Muestra un text_area
+    - Botón para guardar
+    - Guarda respuesta ligada a usuario (si está logueado)
+    """
+    name, email, role = get_current_user()
+    key_text = f"u2_{session}_{hour}_{exercise_id}"
+
+    st.markdown(f"#### ✏️ Your answer – {label}")
+    text = st.text_area(
+        "Write here",
+        key=key_text,
+        height=height,
+        label_visibility="collapsed",
+    )
+
+    if st.button("💾 Save this answer", key=f"save_{key_text}"):
+        if not email:
+            st.warning(
+                "Please go to **Access → Student access** and login with your email "
+                "so your answers are linked to your name."
+            )
+        ok, msg = save_unit2_response(
+            user_email=email,
+            user_name=name,
+            session=session,
+            hour=hour,
+            exercise_id=exercise_id,
+            text=text,
+        )
+        if ok:
+            st.success("✅ Answer saved correctly.")
+        else:
+            st.error(msg)
 
 
 # ==========================
@@ -27,120 +125,19 @@ def inject_global_css():
     st.markdown(
         """
 <style>
-/* ========= PALETA BASE (MODO CLARO) ========= */
-:root {
-  --bg-main: #eef3fb;
-  --bg-soft: #f9fafb;
-  --card-bg: #ffffff;
-  --navy: #111827;
-  --navy-soft: #1f2937;
-  --accent-blue: #1d4ed8;
-  --accent-blue-soft: #2563eb;
-  --accent-red: #b91c1c;
-  --accent-gold: #eab308;
-  --muted: #6b7280;
-  --border-subtle: rgba(15, 23, 42, 0.12);
-  --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.18);
-}
-
-/* ========= PALETA PARA MODO OSCURO ========= */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-main: #020617;
-    --bg-soft: #020617;
-    --card-bg: #020617;
-    --navy: #e5e7eb;
-    --navy-soft: #f9fafb;
-    --accent-blue: #60a5fa;
-    --accent-blue-soft: #3b82f6;
-    --accent-red: #fb7185;
-    --accent-gold: #facc15;
-    --muted: #9ca3af;
-    --border-subtle: rgba(148, 163, 184, 0.4);
-    --shadow-soft: 0 22px 60px rgba(0, 0, 0, 0.9);
-  }
-}
-
-/* ========= RESET SUAVE ========= */
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
-/* Fondo general */
-body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-}
-
-/* Fondo de toda la app */
-.stApp {
-  background: radial-gradient(circle at top left, #ffffff 0%, var(--bg-main) 45%, #c7d2fe 100%);
-  color: var(--navy);
-  min-height: 100vh;
-}
-
-@media (prefers-color-scheme: dark) {
-  .stApp {
-    background: radial-gradient(circle at top left, #020617 0%, #020617 45%, #020617 100%);
-  }
-}
-
-/* Contenedor principal de Streamlit */
-.main .block-container {
-  max-width: 1100px;
-  padding-top: 3rem;
-  padding-bottom: 3rem;
-}
-
-/* Títulos y texto */
-h1, h2, h3 {
-  color: var(--navy-soft);
-}
-
-h1 {
-  font-weight: 800 !important;
-}
-
-@media (prefers-color-scheme: dark) {
-  h1, h2, h3 {
-    color: var(--navy-soft);
-  }
-}
-
-/* Tablas más limpias */
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-table thead tr th {
-  background-color: rgba(248, 250, 252, 0.9);
-  color: var(--navy-soft);
-  font-weight: 600;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-table tbody tr td {
-  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
-}
-
-/* Cards suaves para cajas de contenido de Streamlit */
-.stAlert, .stTable, .stDataFrame, .stMarkdown, .element-container {
-  border-radius: 18px;
-}
-
-/* ========= MENÚ FLOTANTE SUPERIOR IZQUIERDA ========= */
 .floating-menu-wrapper {
     position: fixed;
     top: 4.5rem;
     left: 1.4rem;
     z-index: 2000;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+/* Escondemos el checkbox */
 .floating-menu-toggle {
     display: none;
 }
 
+/* Botón redondo "Menu" */
 .floating-menu-button {
     background: linear-gradient(135deg, #1f4b99, #274b8f);
     color: #ffffff;
@@ -150,18 +147,12 @@ table tbody tr td {
     font-weight: 600;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
     cursor: pointer;
+    border: none;
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    border: none;
-    user-select: none;
-    white-space: nowrap;
 }
 
-.floating-menu-button:hover {
-    filter: brightness(1.05);
-}
-
+/* Panel flotante */
 .floating-menu-panel {
     position: absolute;
     top: 3.1rem;
@@ -177,68 +168,69 @@ table tbody tr td {
     transition: all 0.18s ease-out;
 }
 
-@media (prefers-color-scheme: dark) {
-  .floating-menu-panel {
-      background-color: #020617;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-  }
-}
-
-.floating-menu-header {
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #555;
-    margin-bottom: 0.4rem;
-    padding: 0 0.2rem;
-}
-
-.menu-link {
-    display: block;
-    padding: 0.4rem 0.5rem;
-    border-radius: 0.55rem;
-    text-decoration: none;
-    font-size: 0.9rem;
-    color: #222;
-    margin-bottom: 0.15rem;
-}
-
-.menu-link:hover {
-    background-color: #f1f4fb;
-}
-
-.menu-link.active {
-    background-color: #1f4b99;
-    color: #ffffff;
-    font-weight: 600;
-}
-
-/* Toggle behaviour */
+/* Mostrar el menú cuando el checkbox está activado */
 .floating-menu-toggle:checked ~ .floating-menu-panel {
     opacity: 1;
     pointer-events: auto;
     transform: translateY(0);
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-    .floating-menu-wrapper {
-        top: 4.0rem;
-        left: 1rem;
-    }
-    .floating-menu-button {
-        padding: 0.45rem 1.1rem;
-        font-size: 0.9rem;
-    }
-    .floating-menu-panel {
-        min-width: 200px;
-    }
+/* Cabecera del panel */
+.floating-menu-header {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.35rem;
+    color: #4b5563;
 }
 
+/* Enlaces del menú (<a>) */
+.menu-link-btn {
+    width: 100%;
+    display: block;
+    text-align: left;
+    padding: 0.5rem 0.7rem;
+    border-radius: 0.55rem;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #111827;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+.menu-link-btn:hover {
+    background-color: #f1f4fb;
+}
+
+.menu-link-btn.active {
+    background-color: #1f4b99;
+    color: white;
+    font-weight: 600;
+}
+
+/* Modo oscuro del sistema */
+@media (prefers-color-scheme: dark) {
+    .floating-menu-panel {
+        background-color: #020617;
+    }
+    .floating-menu-header {
+        color: #9ca3af;
+    }
+    .menu-link-btn {
+        color: #e5e7eb;
+    }
+    .menu-link-btn:hover {
+        background-color: #0f172a;
+    }
+    .menu-link-btn.active {
+        background-color: #1d4ed8;
+    }
+}
 </style>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
 
 
@@ -910,6 +902,7 @@ def show_logo():
         except Exception:
             st.warning("The file 'logo-english-classes.png' exists but is not a valid image.")
 
+
 def show_signature():
     sig_path = os.path.join("assets", "firma-ivan-diaz.png")
     if os.path.exists(sig_path):
@@ -931,7 +924,10 @@ PAGES = [
     {"id": "Assessment & Progress", "label": "Assessment", "icon": "📝"},
     {"id": "Instructor", "label": "Instructor", "icon": "👨‍🏫"},
     {"id": "Enter your class", "label": "Class", "icon": "🎓"},
+    {"id": "Access", "label": "Access", "icon": "🔐"},
+    {"id": "Teacher Panel", "label": "Teacher", "icon": "📂"},
 ]
+
 
 def _get_query_params():
     try:
@@ -939,6 +935,7 @@ def _get_query_params():
     except Exception:
         params = st.experimental_get_query_params()
     return params
+
 
 def get_current_page_id() -> str:
     params = _get_query_params()
@@ -950,11 +947,13 @@ def get_current_page_id() -> str:
         return "Overview"
     return page
 
+
 def _rerun():
     try:
         st.rerun()
     except Exception:
         st.experimental_rerun()
+
 
 def go_to_page(page_id: str):
     valid_ids = [p["id"] for p in PAGES]
@@ -966,33 +965,45 @@ def go_to_page(page_id: str):
         st.experimental_set_query_params(page=page_id)
     _rerun()
 
+
 def render_floating_menu(current_page_id: str):
-    items_html = []
+    # Construcción de items usando <form method="get"> (sin JS, sin <a>)
+    items_html = ""
     for page in PAGES:
         page_id = page["id"]
         label = page["label"]
         icon = page["icon"]
+
         is_active = (page_id == current_page_id)
         active_class = "active" if is_active else ""
-        href = f"?page={page_id}"
-        items_html.append(
-            f'<a class="menu-link {active_class}" href="{href}">{icon} {label}</a>'
-        )
 
-    menu_html = f"""
-    <div class="floating-menu-wrapper">
-        <input type="checkbox" id="floating-menu-toggle" class="floating-menu-toggle" />
-        <label for="floating-menu-toggle" class="floating-menu-button">
-            ☰ Menu
-        </label>
-        <div class="floating-menu-panel">
-            <div class="floating-menu-header">Navigate</div>
-            {''.join(items_html)}
-        </div>
-    </div>
-    """
+        # Cada item es un formulario GET que envía ?page=<page_id>
+        items_html += f"""
+<form method="get" style="margin:0; padding:0;">
+  <input type="hidden" name="page" value="{page_id}">
+  <button type="submit" class="menu-link-btn {active_class}">
+    {icon} {label}
+  </button>
+</form>
+"""
+
+    # Contenedor principal
+    menu_html = textwrap.dedent(f"""
+<div class="floating-menu-wrapper">
+  <input type="checkbox" id="floating-menu-toggle" class="floating-menu-toggle" />
+  
+  <label for="floating-menu-toggle" class="floating-menu-button">
+    ☰ Menu
+  </label>
+
+  <div class="floating-menu-panel">
+    <div class="floating-menu-header">Navigate</div>
+    {items_html}
+  </div>
+</div>
+""")
+
     st.markdown(menu_html, unsafe_allow_html=True)
-
 
 # ==========================
 # HELPERS FOR AUDIO & PRESENTATIONS
@@ -1005,6 +1016,7 @@ def _audio_or_warning(filename: str):
         st.audio(str(audio_path))
     else:
         st.warning(f"Audio file not found: `audio/{filename}`")
+
 
 def render_presentation_html(filename: str):
     """Render a Reveal.js HTML presentation inside the app if the file exists."""
@@ -1021,510 +1033,8 @@ def render_presentation_html(filename: str):
 
 
 # ==========================
-# UNIT 1 – SESSION 1
-# ==========================
-
-def render_unit1_session1_hour1():
-    st.subheader("Unit 1 – Session 1 · 1st Hour – Grammar & Writing")
-
-    st.markdown("### ✅ Objectives")
-    st.markdown(
-        "- Review the verb **be** in the present\n"
-        "- Use **be** to talk about name, country and job\n"
-        "- Write a short introduction about yourself and another person"
-    )
-
-    st.markdown("### ✏️ Warm-up")
-    st.write(
-        "Think of one person you know. Who is this person? "
-        "Where is this person from? What is their job?"
-    )
-    st.info('Example: **"She is my friend. She is from Mexico. She is a designer."**')
-
-    st.markdown("### 🧩 Grammar: Verb *be* – Forms")
-    st.write(
-        "I am → I’m\n\n"
-        "You are → You’re\n\n"
-        "He is → He’s\n\n"
-        "She is → She’s\n\n"
-        "We are → We’re\n\n"
-        "They are → They’re"
-    )
-
-    st.markdown("### ✍️ Practice – Complete with *am / is / are*")
-    st.markdown(
-        "1. I ______ from Guatemala.\n\n"
-        "2. She ______ a tour guide.\n\n"
-        "3. They ______ not students.\n\n"
-        "4. We ______ friends.\n\n"
-        "5. He ______ from Italy.\n\n"
-        "6. You ______ my classmate."
-    )
-
-    st.markdown("### ✍️ Guided writing – About you")
-    st.info(
-        'Model: *"Hello, my name is Laura. I’m from Mexico City and I’m Mexican. '
-        'I’m a student. I’m very happy to study English."*'
-    )
-    st.write("Now write your own introduction in your notebook.")
-
-    st.markdown("### ✍️ Guided writing – Another person")
-    st.info(
-        'Model: *"This is my friend Daniel. He’s from Costa Rica and he’s Costa Rican. '
-        'He’s an architect. He isn’t a student."*'
-    )
-    st.write("Write about a friend, classmate or family member.")
-
-
-def render_unit1_session1_hour2():
-    st.subheader("Unit 1 – Session 1 · 2nd Hour – Listening & Speaking")
-
-    st.markdown("### 🎯 Objectives")
-    st.markdown(
-        "- Understand short audio introductions\n"
-        "- Recognize countries, nationalities and jobs in context\n"
-        "- Practice pronunciation\n"
-        "- Speak about yourself and another person"
-    )
-
-    # Listening 1 – Welcome
-    st.markdown("### 🔊 Listening 1 – Welcome")
-    _audio_or_warning("unit1_hour2_welcome.mp3")
-    st.caption(
-        "Script: Welcome to the second part of Session One. Today, we will focus on "
-        "listening and speaking. You will listen to real introductions, repeat key "
-        "structures, and practice speaking about yourself and other people."
-    )
-
-    # Listening 2 – Verb be
-    st.markdown("### 🔊 Listening 2 – Verb *be* pronunciation")
-    _audio_or_warning("unit1_hour2_be_pronunciation.mp3")
-    st.write("Listen first. Then repeat each form of **be**.")
-
-    # Listening 3 – Countries & nationalities
-    st.markdown("### 🔊 Listening 3 – Countries & nationalities")
-    _audio_or_warning("unit1_hour2_countries.mp3")
-    st.write("After listening, say: *I’m Mexican / I’m Guatemalan / I’m American*, etc.")
-
-    # Listening 4 – Jobs
-    st.markdown("### 🔊 Listening 4 – Jobs vocabulary")
-    _audio_or_warning("unit1_hour2_jobs.mp3")
-    st.write("Listen and repeat. Then answer: *What’s your job?*")
-
-    # Listening 5 – Sample introduction
-    st.markdown("### 🔊 Listening 5 – Sample introduction")
-    _audio_or_warning("unit1_hour2_sample_intro.mp3")
-    st.markdown(
-        "**Questions:**\n\n"
-        "1. What is his name?\n"
-        "2. Where is he from?\n"
-        "3. What is his job?\n"
-        "4. What does he carry every day?"
-    )
-
-    # Final listening
-    st.markdown("### 🔊 Final listening – A friend")
-    _audio_or_warning("unit1_hour2_final_listening.mp3")
-    st.markdown(
-        "**Questions:**\n\n"
-        "1. What is her name?\n"
-        "2. Where is she from?\n"
-        "3. What is her job?\n"
-        "4. What does she carry every day?"
-    )
-
-    # Speaking tasks
-    st.markdown("### 🗣️ Speaking – About you")
-    st.markdown(
-        "- What’s your name?\n"
-        "- Where are you from?\n"
-        "- What’s your nationality?\n"
-        "- What’s your job?\n"
-        "- What do you always carry with you?"
-    )
-
-    st.markdown("### 👥 Pair work – Interview")
-    st.write(
-        "Work in pairs. Ask and answer the questions above. "
-        "Then introduce your partner to the group."
-    )
-
-
-# ==========================
-# UNIT 1 – SESSION 2
-# (aquí asumo que ya tienes implementadas las funciones
-#  render_unit1_session2_hour1() y render_unit1_session2_hour2()
-#  como acordamos anteriormente; las dejo como placeholder si quieres seguir expandiendo)
-# ==========================
-
-def render_unit1_session2_hour1():
-    st.subheader("Unit 1 – Session 2 · 1st Hour – Grammar & Writing")
-    st.markdown("### Theme: Countries, nationalities & jobs – Question patterns")
-
-    st.markdown("### ✅ Objectives")
-    st.markdown(
-        "- Review countries, nationalities and jobs.\n"
-        "- Use question patterns: **What’s your name? / Where are you from? / What’s your nationality? / What do you do?**\n"
-        "- Practise controlled exercises with questions and answers.\n"
-        "- Write a short form for an international event."
-    )
-
-    st.markdown("### ✏️ Warm-up – International event")
-    st.write(
-        "Imagine you are at an **international tourism event**. "
-        "You meet people from different countries."
-    )
-    st.markdown(
-        "- What questions do you ask first?\n"
-        "- What information is important for you?"
-    )
-    st.info(
-        'Typical questions: *"What’s your name? Where are you from? '
-        'What do you do?"*'
-    )
-
-    st.markdown("### 🧩 Question patterns – Form & meaning")
-    st.markdown(
-        "| Question                         | Meaning                        | Example answer                         |\n"
-        "|----------------------------------|--------------------------------|----------------------------------------|\n"
-        "| **What’s your name?**            | Ask for name                   | My name is Ana. / I’m Ana.             |\n"
-        "| **Where are you from?**          | Ask for country / city         | I’m from Mexico City.                  |\n"
-        "| **What’s your nationality?**     | Ask for nationality            | I’m Mexican.                           |\n"
-        "| **What do you do?**              | Ask for job / occupation       | I’m a tour guide. / I work in a hotel. |"
-    )
-
-    st.markdown("### ✍️ Controlled practice 1 – Complete the questions")
-    st.markdown(
-        "Complete with **What / Where / What’s / What do**.\n\n"
-        "1. ______ your name?\n\n"
-        "2. ______ are you from?\n\n"
-        "3. ______ your nationality?\n\n"
-        "4. ______ you do?\n"
-    )
-
-    st.markdown("### ✍️ Controlled practice 2 – Match questions and answers")
-    st.markdown("Match the questions (1–4) with the answers (a–d).")
-    st.markdown(
-        "**Questions:**\n"
-        "1. What’s your name?\n"
-        "2. Where are you from?\n"
-        "3. What’s your nationality?\n"
-        "4. What do you do?\n\n"
-        "**Answers:**\n"
-        "a. I’m a receptionist.\n"
-        "b. I’m Brazilian.\n"
-        "c. I’m from São Paulo.\n"
-        "d. My name is Carla.\n"
-    )
-
-    st.markdown("### ✍️ Controlled practice 3 – Complete the dialogue")
-    st.write("Complete the dialogue with the correct questions.")
-
-    st.markdown(
-        "**A:** Hi, I’m Luis. __(1)____________________?\n\n"
-        "**B:** My name is Sara.\n\n"
-        "**A:** Nice to meet you, Sara. __(2)____________________?\n\n"
-        "**B:** I’m from Guatemala City.\n\n"
-        "**A:** Oh, great. __(3)____________________?\n\n"
-        "**B:** I’m Guatemalan.\n\n"
-        "**A:** And __(4)____________________?\n\n"
-        "**B:** I’m a travel agent.\n"
-    )
-
-    st.markdown("### ✍️ Guided writing – Registration form")
-    st.write(
-        "Now write a **short registration form** for an international event. "
-        "Use the four question patterns."
-    )
-    st.markdown(
-        "**Example form:**\n\n"
-        "1. What’s your name?\n"
-        "2. Where are you from?\n"
-        "3. What’s your nationality?\n"
-        "4. What do you do?\n"
-    )
-    st.write(
-        "Students write the form in their notebook and then use it to interview a partner."
-    )
-
-    st.markdown("### 🗣️ Quick speaking – Pair interview")
-    st.markdown(
-        "In pairs:\n"
-        "1. Use your form and ask the four questions.\n"
-        "2. Take notes about your partner.\n"
-        "3. Introduce your partner to the class:\n"
-        '   *\"This is Ana. She is from Colombia. She is Colombian and she is a tour guide.\"*'
-    )
-
-
-def render_unit1_session2_hour2():
-    st.subheader("Unit 1 – Session 2 · 2nd Hour – Listening & Speaking")
-    st.markdown("### Theme: Countries, nationalities & jobs – International event")
-
-    st.markdown("### 🎯 Objectives")
-    st.markdown(
-        "- Understand very slow introductions at an international event.\n"
-        "- Recognize question patterns about name, country, nationality and job.\n"
-        "- Practise short dialogues in pairs.\n"
-        "- Prepare a final group introduction task."
-    )
-
-    # Listening 1 – Welcome
-    st.markdown("### 🔊 Listening 1 – Welcome to Session 2")
-    _audio_or_warning("U1_S2_audio1_welcome.mp3")
-    st.caption(
-        "Extra slow welcome to Session 2. Explains that students will listen to people "
-        "from different countries and jobs at an international event."
-    )
-
-    # Listening 2 – Question patterns
-    st.markdown("### 🔊 Listening 2 – Question patterns")
-    _audio_or_warning("U1_S2_audio2_question_patterns.mp3")
-    st.markdown(
-        "**Focus:**\n"
-        "- What’s your name?\n"
-        "- Where are you from?\n"
-        "- What’s your nationality?\n"
-        "- What do you do?\n\n"
-        "Students listen and repeat the questions several times."
-    )
-
-    # Listening 3 – Short dialogues
-    st.markdown("### 🔊 Listening 3 – Short dialogues")
-    _audio_or_warning("U1_S2_audio3_short_dialogues.mp3")
-    st.write(
-        "Listen to the mini-dialogues between two people at an international event. "
-        "After listening, students practise the same dialogues in pairs."
-    )
-    st.markdown(
-        "**Task:**\n"
-        "1. Listen once – just understand the idea.\n"
-        "2. Listen again and repeat.\n"
-        "3. Practise in pairs changing the country, nationality and job."
-    )
-
-    # Listening 4 – Group introduction
-    st.markdown("### 🔊 Listening 4 – Group introduction model")
-    _audio_or_warning("U1_S2_audio4_group_introduction.mp3")
-    st.markdown(
-        "This audio gives a model of how to introduce several people in a group.\n\n"
-        "**After listening, ask:**\n"
-        "- How many people are in the group?\n"
-        "- Where are they from?\n"
-        "- What jobs do they have?"
-    )
-
-    # Listening 5 – Final task
-    st.markdown("### 🔊 Listening 5 – Final task instructions")
-    _audio_or_warning("U1_S2_audio5_final_task.mp3")
-    st.markdown(
-        "Students follow the instructions from the audio:\n"
-        "1. Walk around the classroom and talk to **3 classmates**.\n"
-        "2. Ask: *What’s your name? Where are you from? What do you do?*\n"
-        "3. Take notes.\n"
-        "4. At the end, introduce **one person** from your notes to the class."
-    )
-
-    st.markdown("### 🗣️ Speaking – Present a classmate")
-    st.info(
-        '"This is Carlos. He is from Colombia. He is Colombian and he is a tour guide. '
-        'He works in Bogotá."'
-    )
-    st.write(
-        "Students prepare one short introduction and present it to the group. "
-        "Teacher checks pronunciation of countries, nationalities and jobs."
-    )
-
-
-# ==========================
-# UNIT 1 – SESSION 3 (NUEVO)
-# ==========================
-
-def render_unit1_session3_hour1():
-    st.subheader("Unit 1 – Session 3 · 1st Hour – Grammar & Writing")
-    st.markdown("### Theme: People you know")
-
-    st.markdown("### ✅ Objectives")
-    st.markdown(
-        "- Use **Wh- questions** to ask about people.\n"
-        "- Use **adjectives** to describe personality and appearance.\n"
-        "- Write a short description of a real person.\n"
-        "- Review **verb be** in context."
-    )
-
-    st.markdown("### ✏️ Warm-up – People in your life")
-    st.write("Think of **three important people** in your life.")
-    st.markdown(
-        "- Who are they?\n"
-        "- How old are they?\n"
-        "- What are they like?"
-    )
-    st.info('Example: *"This is my friend Laura. She is 28. She is very friendly and organized."*')
-
-    st.markdown("### 🧩 Grammar – Wh- questions (review)")
-    st.markdown(
-        "| Question word | Use            | Example              |\n"
-        "|--------------|----------------|----------------------|\n"
-        "| **Who**      | person         | Who is he?           |\n"
-        "| **Where**    | place / origin | Where is she from?   |\n"
-        "| **How old**  | age            | How old is he?       |\n"
-        "| **What … like** | personality | What is she like?    |\n"
-        "| **What**     | job            | What does he do?     |"
-    )
-
-    st.markdown("**Complete the questions:**")
-    st.markdown(
-        "1. ___ is she?\n\n"
-        "2. ___ is he from?\n\n"
-        "3. ___ old is your friend?\n\n"
-        "4. ___ is she like?\n\n"
-        "5. ___ does he do?"
-    )
-
-    st.markdown("### 🧩 Adjectives to describe people")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.markdown("**Personality**")
-        st.markdown(
-            "- friendly\n"
-            "- quiet\n"
-            "- serious\n"
-            "- funny\n"
-            "- talkative\n"
-            "- kind\n"
-            "- shy\n"
-            "- confident\n"
-            "- patient\n"
-            "- energetic"
-        )
-
-    with col2:
-        st.markdown("**Appearance**")
-        st.markdown(
-            "- tall\n"
-            "- short\n"
-            "- young\n"
-            "- old\n"
-            "- strong"
-        )
-        st.info('Use **be**: *"She is tall"* – not *"She has tall".*')
-
-    st.markdown("### ✍️ Controlled practice")
-    st.write("Complete with adjectives:")
-    st.markdown(
-        "**Word bank:** friendly, funny, quiet, tall, young\n\n"
-        "1. My nephew is very ______.\n\n"
-        "2. My grandmother is ______ and ______.\n\n"
-        "3. My best friend is ______ and ______.\n\n"
-        "4. My teacher is ______ but very ______."
-    )
-
-    st.markdown("### ✍️ Guided writing – Model")
-    st.info(
-        '"This is my friend Marco. He is 25 years old.\n'
-        'He is from Spain. He is Spanish.\n'
-        'He is tall and very friendly.\n'
-        'He works in a café and he is very funny."'
-    )
-
-    st.markdown("### ✍️ Guided writing – Your turn")
-    st.write("Write about a real person you know. Answer these questions:")
-    st.markdown(
-        "- Who is the person?\n"
-        "- How old are they?\n"
-        "- Where are they from?\n"
-        "- What are they like? (2–3 adjectives)\n"
-        "- What do they do?"
-    )
-    st.write("Write **4–6 sentences** in your notebook, then share with your partner.")
-
-
-def render_unit1_session3_hour2():
-    st.subheader("Unit 1 – Session 3 · 2nd Hour – Listening & Speaking")
-    st.markdown("### Theme: People you know (listening & speaking – extra slow)")
-
-    st.markdown("### 🎯 Objectives")
-    st.markdown(
-        "- Understand slow descriptions of different people.\n"
-        "- Identify **name, age, personality and job** from audio.\n"
-        "- Repeat and practise key adjectives with clear pronunciation.\n"
-        "- Describe a real person and share the description orally."
-    )
-
-    # Listening 1
-    st.markdown("### 🔊 Listening 1 – Welcome to Session 3")
-    _audio_or_warning("U1_S3_audio1_intro.mp3")
-    st.caption(
-        "Extra slow · Warm introduction to Session 3 listening. "
-        "Focus on what students will do in this part of the class."
-    )
-
-    # Listening 2 – Adjectives drill
-    st.markdown("### 🔊 Listening 2 – Adjectives drill")
-    _audio_or_warning("U1_S3_audio2_adjectives_drill.mp3")
-    st.write(
-        "Listen and repeat the adjectives. First, only listen. "
-        "Then listen and repeat in chorus; finally, individual students practise."
-    )
-    st.markdown(
-        "**Adjectives in this drill:**\n\n"
-        "- friendly, funny, quiet, serious, talkative\n"
-        "- kind, shy, confident, patient, energetic"
-    )
-
-    # Listening 3 – Short descriptions
-    st.markdown("### 🔊 Listening 3 – Short descriptions")
-    _audio_or_warning("U1_S3_audio3_short_descriptions.mp3")
-    st.write("Listen to three short descriptions and complete the table:")
-
-    st.markdown(
-        "| # | Name    | Age   | Personality     | Job        |\n"
-        "|---|---------|-------|-----------------|------------|\n"
-        "| 1 | Maria   | ____  | ____            | ____       |\n"
-        "| 2 | Roberto | ____  | ____            | ____       |\n"
-        "| 3 | Elena   | ____  | ____            | ____       |"
-    )
-    st.info("Play twice: first for general idea, second for details.")
-
-    # Listening 4 – Long description
-    st.markdown("### 🔊 Listening 4 – Long description")
-    _audio_or_warning("U1_S3_audio4_long_description.mp3")
-    st.markdown("**After listening, ask these questions:**")
-    st.markdown(
-        "- How old is Daniel?\n"
-        "- What is his job?\n"
-        "- What adjectives describe him?"
-    )
-
-    # Listening 5 – Final task
-    st.markdown("### 🔊 Listening 5 – Final task instructions")
-    _audio_or_warning("U1_S3_audio5_final_task.mp3")
-    st.markdown("Students follow these steps:")
-    st.markdown(
-        "1. Think of a person they know well.\n"
-        "2. Ask their partner:\n"
-        "   - Who is the person?\n"
-        "   - How old is he or she?\n"
-        "   - What is he or she like?\n"
-        "   - What does he or she do?\n"
-        "3. Listen carefully and take notes.\n"
-        "4. Introduce their partner’s person to the class."
-    )
-
-    st.markdown("### 🗣️ Speaking – Introduce a person")
-    st.info(
-        '"This is my partner’s friend Ana. She is 30 years old.\n'
-        'She is from Mexico. She is very friendly and energetic.\n'
-        'She works as a designer."'
-    )
-    st.write(
-        "Students present in pairs or small groups. "
-        "Teacher listens for correct use of **be** and adjectives."
-    )
-# ==========================
-# UNIT 2 – SESSION 1
+# UNIT 2 – SESSIONS
+# (Unidad 1 la conservas como ya la tenías si la usas)
 # ==========================
 
 def render_unit2_session1_hour1():
@@ -1606,9 +1116,9 @@ def render_unit2_session1_hour1():
 
     st.markdown("### ✍️ Guided writing – My typical day")
     st.info(
-        '"On weekdays I usually get up at 6:30. I have coffee and bread, then I go to work.\n'
-        'I start work at 8:00 and finish at 4:00. After work I sometimes go to the gym\n'
-        'or I meet my friends. I never go to bed late on Monday to Friday."'
+        "\"On weekdays I usually get up at 6:30. I have coffee and bread, then I go to work.\n"
+        "I start work at 8:00 and finish at 4:00. After work I sometimes go to the gym\n"
+        "or I meet my friends. I never go to bed late on Monday to Friday.\""
     )
 
     st.write("Now write **5–7 sentences** about your typical day. Use:")
@@ -1616,6 +1126,10 @@ def render_unit2_session1_hour1():
         "- Present simple (get up, start, finish, go, have…)\n"
         "- At least **3 adverbs of frequency**."
     )
+
+    st.markdown("---")
+    unit2_answer_box("S1", "H1", "practice", "Grammar & practice answers")
+    unit2_answer_box("S1", "H1", "writing", "My typical day – paragraph")
 
 
 def render_unit2_session1_hour2():
@@ -1682,10 +1196,10 @@ def render_unit2_session1_hour2():
     )
     st.info("Then tell the class **one similarity** and **one difference** between your routines.")
 
+    st.markdown("---")
+    unit2_answer_box("S1", "H2", "listening_notes", "Listening notes and answers")
+    unit2_answer_box("S1", "H2", "speaking", "Speaking – My day (notes)")
 
-# ==========================
-# UNIT 2 – SESSION 2
-# ==========================
 
 def render_unit2_session2_hour1():
     st.subheader("Unit 2 – Session 2 · 1st Hour – Grammar & Writing")
@@ -1744,6 +1258,10 @@ def render_unit2_session2_hour1():
         'Example: *"Do you usually watch TV at night?"* / *"Does your best friend play any sport?"*'
     )
 
+    st.markdown("---")
+    unit2_answer_box("S2", "H1", "questions", "Your free-time questions")
+    unit2_answer_box("S2", "H1", "notes", "Notes / extra examples")
+
 
 def render_unit2_session2_hour2():
     st.subheader("Unit 2 – Session 2 · 2nd Hour – Listening & Speaking")
@@ -1796,10 +1314,10 @@ def render_unit2_session2_hour2():
         'hardly ever watch TV."'
     )
 
+    st.markdown("---")
+    unit2_answer_box("S2", "H2", "survey_notes", "Survey results – notes")
+    unit2_answer_box("S2", "H2", "summary", "Final summary to present")
 
-# ==========================
-# UNIT 2 – SESSION 3
-# ==========================
 
 def render_unit2_session3_hour1():
     st.subheader("Unit 2 – Session 3 · 1st Hour – Grammar & Writing")
@@ -1847,15 +1365,19 @@ def render_unit2_session3_hour1():
 
     st.markdown("### ✍️ Guided writing – My lifestyle")
     st.info(
-        '"I usually get up early on weekdays because I work in the morning.\n'
-        'I drink coffee and I sometimes eat fruit for breakfast.\n'
-        'I don’t do a lot of exercise, but I walk to work every day.\n'
-        'At the weekend I relax and spend time with my family."'
+        "\"I usually get up early on weekdays because I work in the morning.\n"
+        "I drink coffee and I sometimes eat fruit for breakfast.\n"
+        "I don’t do a lot of exercise, but I walk to work every day.\n"
+        "At the weekend I relax and spend time with my family.\""
     )
     st.write(
         "Write **6–8 sentences** about your lifestyle. Use **present simple, frequency expressions "
         "and connectors (and, but, because)**."
     )
+
+    st.markdown("---")
+    unit2_answer_box("S3", "H1", "connectors", "Connector practice – sentences")
+    unit2_answer_box("S3", "H1", "lifestyle", "My lifestyle – paragraph")
 
 
 def render_unit2_session3_hour2():
@@ -1909,6 +1431,7 @@ def render_unit2_session3_hour2():
         '"You should drink more water." / "You shouldn’t work so late at night."'
     )
 
+<<<<<<< HEAD
 # ==========================
 # UNIT 3 – FOOD
 # CLASS 1 – FOOD VOCABULARY
@@ -2247,6 +1770,12 @@ Complete:
         )
 
         st.success("Great job! 🥗 Keep using this food vocabulary in real life.")
+=======
+    st.markdown("---")
+    unit2_answer_box("S3", "H2", "listening", "Listening answers / notes")
+    unit2_answer_box("S3", "H2", "advice", "Advice for a healthier lifestyle")
+
+>>>>>>> c2ae00b5a4cdebe7e12c7dd02a09b550bc84f632
 
 # ==========================
 # PAGES
@@ -2311,7 +1840,6 @@ practical language and a professional learning experience.
         ],
         columns=["Item", "Details"],
     )
-    # 👇 Esta línea es la clave: todo “Details” pasa a texto
     facts_df["Details"] = facts_df["Details"].astype(str)
     st.table(facts_df)
 
@@ -2327,7 +1855,6 @@ en un inglés claro y funcional. Integra el libro Cambridge Empower A2 y lo adap
 reales, especialmente útiles para turismo y servicios.
             """
         )
-
 
 
 def levels_page():
@@ -2395,10 +1922,10 @@ def lessons_page():
             st.markdown(f"- {item}")
         st.success("Use this space to add your own notes, examples or anecdotes for each group.")
 
-    # --- SPECIAL BLOCKS: UNIT 1 – CLASS 1, 2, 3 (Sessions with app + slideshow) ---
-    if unit_number == 1 and "Class 1" in lesson_choice:
+    # --- UNIT 2 special interactive blocks with saving answers ---
+    if unit_number == 2 and "Class 1" in lesson_choice:
         st.markdown("---")
-        st.markdown("### 🎧 Unit 1 – Session 1 · Mobile class + Presentation")
+        st.markdown("### 🎧 Unit 2 – Session 1 · Mobile class")
 
         hour = st.radio(
             "Choose part:",
@@ -2406,107 +1933,14 @@ def lessons_page():
             horizontal=True
         )
 
-        view_mode = st.radio(
-            "View mode",
-            ["Interactive app", "Slideshow (presentation)"],
-            horizontal=True
-        )
-
-        if view_mode == "Interactive app":
-            if hour.startswith("1st"):
-                render_unit1_session1_hour1()
-            else:
-                render_unit1_session1_hour2()
+        if hour.startswith("1st"):
+            render_unit2_session1_hour1()
         else:
-            if hour.startswith("1st"):
-                render_presentation_html("unit1_session1_hour1.html")
-            else:
-                render_presentation_html("unit1_session1_hour2.html")
-
-    elif unit_number == 1 and "Class 2" in lesson_choice:
-        st.markdown("---")
-        st.markdown("### 🎧 Unit 1 – Session 2 · Mobile class + Presentation")
-
-        hour = st.radio(
-            "Choose part:",
-            ["1st Hour – Grammar & Writing", "2nd Hour – Listening & Speaking"],
-            horizontal=True
-        )
-
-        view_mode = st.radio(
-            "View mode",
-            ["Interactive app", "Slideshow (presentation)"],
-            horizontal=True
-        )
-
-        if view_mode == "Interactive app":
-            if hour.startswith("1st"):
-                render_unit1_session2_hour1()
-            else:
-                render_unit1_session2_hour2()
-        else:
-            if hour.startswith("1st"):
-                render_presentation_html("unit1_session2_hour1.html")
-            else:
-                render_presentation_html("unit1_session2_hour2.html")
-
-    elif unit_number == 1 and "Class 3" in lesson_choice:
-        st.markdown("---")
-        st.markdown("### 🎧 Unit 1 – Session 3 · Mobile class + Presentation")
-
-        hour = st.radio(
-            "Choose part:",
-            ["1st Hour – Grammar & Writing", "2nd Hour – Listening & Speaking"],
-            horizontal=True
-        )
-
-        view_mode = st.radio(
-            "View mode",
-            ["Interactive app", "Slideshow (presentation)"],
-            horizontal=True
-        )
-
-        if view_mode == "Interactive app":
-            if hour.startswith("1st"):
-                render_unit1_session3_hour1()
-            else:
-                render_unit1_session3_hour2()
-        else:
-            if hour.startswith("1st"):
-                render_presentation_html("unit1_session3_hour1.html")
-            else:
-                render_presentation_html("unit1_session3_hour2.html")
-        # --- SPECIAL BLOCKS: UNIT 2 – CLASS 1, 2, 3 ---
-    elif unit_number == 2 and "Class 1" in lesson_choice:
-        st.markdown("---")
-        st.markdown("### 🎧 Unit 2 – Session 1 · Mobile class + Presentation")
-
-        hour = st.radio(
-            "Choose part:",
-            ["1st Hour – Grammar & Writing", "2nd Hour – Listening & Speaking"],
-            horizontal=True
-        )
-
-        view_mode = st.radio(
-            "View mode",
-            ["Interactive app", "Slideshow (presentation)"],
-            horizontal=True
-        )
-
-        if view_mode == "Interactive app":
-            if hour.startswith("1st"):
-                render_unit2_session1_hour1()
-            else:
-                render_unit2_session1_hour2()
-        else:
-            if hour.startswith("1st"):
-                render_presentation_html("unit2_session1_hour1.html")
-            else:
-                render_presentation_html("unit2_session1_hour2.html")
+            render_unit2_session1_hour2()
 
     elif unit_number == 2 and "Class 2" in lesson_choice:
         st.markdown("---")
-        st.markdown("### 🎧 Unit 2 – Session 2 · Mobile class + Presentation")
+        st.markdown("### 🎧 Unit 2 – Session 2 · Mobile class")
 
         hour = st.radio(
             "Choose part:",
@@ -2514,26 +1948,14 @@ def lessons_page():
             horizontal=True
         )
 
-        view_mode = st.radio(
-            "View mode",
-            ["Interactive app", "Slideshow (presentation)"],
-            horizontal=True
-        )
-
-        if view_mode == "Interactive app":
-            if hour.startswith("1st"):
-                render_unit2_session2_hour1()
-            else:
-                render_unit2_session2_hour2()
+        if hour.startswith("1st"):
+            render_unit2_session2_hour1()
         else:
-            if hour.startswith("1st"):
-                render_presentation_html("unit2_session2_hour1.html")
-            else:
-                render_presentation_html("unit2_session2_hour2.html")
+            render_unit2_session2_hour2()
 
     elif unit_number == 2 and "Class 3" in lesson_choice:
         st.markdown("---")
-        st.markdown("### 🎧 Unit 2 – Session 3 · Mobile class + Presentation")
+        st.markdown("### 🎧 Unit 2 – Session 3 · Mobile class")
 
         hour = st.radio(
             "Choose part:",
@@ -2541,22 +1963,11 @@ def lessons_page():
             horizontal=True
         )
 
-        view_mode = st.radio(
-            "View mode",
-            ["Interactive app", "Slideshow (presentation)"],
-            horizontal=True
-        )
-
-        if view_mode == "Interactive app":
-            if hour.startswith("1st"):
-                render_unit2_session3_hour1()
-            else:
-                render_unit2_session3_hour2()
+        if hour.startswith("1st"):
+            render_unit2_session3_hour1()
         else:
-            if hour.startswith("1st"):
-                render_presentation_html("unit2_session3_hour1.html")
-            else:
-                render_presentation_html("unit2_session3_hour2.html")
+            render_unit2_session3_hour2()
+
 
 def assessment_page():
     show_logo()
@@ -2605,6 +2016,127 @@ actually experience in their daily life and work.
     show_signature()
 
 
+def access_page():
+    show_logo()
+    st.title("🔐 Access")
+
+    tabs = st.tabs(["Student access", "Admin access"])
+
+    # ---- Student ----
+    with tabs[0]:
+        st.subheader("Student – Login or register")
+
+        mode = st.radio("Choose an option", ["Login", "Register"], horizontal=True)
+
+        if mode == "Login":
+            email = st.text_input("Email", key="login_email")
+            name = st.text_input("Your name (optional)", key="login_name")
+            if st.button("Login", key="login_btn"):
+                if email:
+                    st.session_state["auth"]["logged_in"] = True
+                    st.session_state["auth"]["role"] = "student"
+                    st.session_state["auth"]["email"] = email
+                    st.session_state["auth"]["name"] = name or email
+                    st.success(f"Welcome, {st.session_state['auth']['name']}!")
+                else:
+                    st.error("Please write your email.")
+        else:
+            name = st.text_input("Full name", key="reg_name")
+            email = st.text_input("Email", key="reg_email")
+            goal = st.text_area("Why are you studying English? (optional)", key="reg_goal")
+            if st.button("Create account & login", key="reg_btn"):
+                if name and email:
+                    st.session_state["auth"]["logged_in"] = True
+                    st.session_state["auth"]["role"] = "student"
+                    st.session_state["auth"]["email"] = email
+                    st.session_state["auth"]["name"] = name
+                    st.success(f"Welcome, {name}! Your account is active in this device.")
+                else:
+                    st.error("Please write at least your name and email.")
+
+        if st.session_state["auth"]["logged_in"]:
+            st.info(
+                f"Current user: **{st.session_state['auth']['name']}** "
+                f"({st.session_state['auth']['email']})"
+            )
+            if st.button("Logout", key="logout_btn"):
+                st.session_state["auth"] = {
+                    "logged_in": False,
+                    "role": "guest",
+                    "name": "",
+                    "email": "",
+                }
+                st.success("Logged out.")
+
+    # ---- Admin ----
+    with tabs[1]:
+        st.subheader("Admin access")
+        st.write("Only for teacher / administrator.")
+
+        code = st.text_input("Admin access code", type="password", key="admin_code")
+        if st.button("Enter as admin", key="admin_btn"):
+            if code == ADMIN_ACCESS_CODE:
+                st.session_state["auth"]["logged_in"] = True
+                st.session_state["auth"]["role"] = "admin"
+                st.session_state["auth"]["name"] = "Admin"
+                st.session_state["auth"]["email"] = "admin@local"
+                st.success("✅ Admin access granted.")
+            else:
+                st.error("Invalid code")
+
+        if st.session_state["auth"]["role"] == "admin":
+            st.success("You are logged in as admin. Go to **Teacher Panel** from the menu.")
+
+
+def teacher_panel_page():
+    show_logo()
+    st.title("📂 Teacher Panel – Unit 2 answers")
+
+    name, email, role = get_current_user()
+    if role != "admin":
+        st.error("This area is only for admin. Please go to **Access → Admin** and enter your code.")
+        return
+
+    st.markdown(
+        "Here you can review the answers that students saved for **Unit 2**.\n\n"
+        "Data is stored in `responses/unit2_responses.csv` on the server."
+    )
+
+    if not RESPONSES_FILE.exists():
+        st.info("No answers saved yet.")
+        return
+
+    try:
+        df = pd.read_csv(RESPONSES_FILE)
+        if "unit" in df.columns:
+            df = df[df["unit"] == 2]
+        if df.empty:
+            st.info("No answers for Unit 2 yet.")
+            return
+
+        df["response"] = df["response"].fillna("").astype(str).str.replace("\\n", "\n")
+
+        st.markdown("### Filters")
+        sessions = sorted(df["session"].unique())
+        session_choice = st.selectbox("Session", sessions)
+
+        filtered = df[df["session"] == session_choice]
+
+        emails = sorted(filtered["user_email"].unique())
+        email_filter = st.multiselect("Filter by student (optional)", emails)
+
+        if email_filter:
+            filtered = filtered[filtered["user_email"].isin(email_filter)]
+
+        st.markdown("### Answers")
+        st.dataframe(
+            filtered.sort_values("timestamp", ascending=False),
+            use_container_width=True,
+        )
+    except Exception as e:
+        st.error(f"Error loading answers: {e}")
+
+
 # ==========================
 # PAGE ROUTER
 # ==========================
@@ -2620,6 +2152,10 @@ def render_page(page_id: str):
         instructor_page()
     elif page_id == "Enter your class":
         lessons_page()
+    elif page_id == "Access":
+        access_page()
+    elif page_id == "Teacher Panel":
+        teacher_panel_page()
     else:
         overview_page()
 
@@ -2629,11 +2165,12 @@ def render_page(page_id: str):
 # ==========================
 
 def main():
+    init_session()
     inject_global_css()
     current_page = get_current_page_id()
     render_page(current_page)
     render_floating_menu(current_page)
 
+
 if __name__ == "__main__":
     main()
-    
