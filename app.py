@@ -1430,8 +1430,6 @@ def render_unit2_session3_hour2():
     st.info(
         '"You should drink more water." / "You shouldn’t work so late at night."'
     )
-
-<<<<<<< HEAD
 # ==========================
 # UNIT 3 – FOOD
 # CLASS 1 – FOOD VOCABULARY
@@ -1775,7 +1773,6 @@ Complete:
     unit2_answer_box("S3", "H2", "listening", "Listening answers / notes")
     unit2_answer_box("S3", "H2", "advice", "Advice for a healthier lifestyle")
 
->>>>>>> c2ae00b5a4cdebe7e12c7dd02a09b550bc84f632
 
 # ==========================
 # PAGES
