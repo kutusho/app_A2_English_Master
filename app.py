@@ -1909,6 +1909,344 @@ def render_unit2_session3_hour2():
         '"You should drink more water." / "You shouldn’t work so late at night."'
     )
 
+# ==========================
+# UNIT 3 – FOOD
+# CLASS 1 – FOOD VOCABULARY
+# ==========================
+
+def unit3_class1_food_vocabulary():
+    """
+    A2 – Unit 3: Food · Class 1 – Food vocabulary
+    Suggested audio files:
+      - AUDIO_DIR / "U3_C1_audio1_food_words.mp3"        # vocab + pronunciation
+      - AUDIO_DIR / "U3_C1_audio2_at_the_supermarket.mp3"  # short dialogue
+    """
+
+    st.title("Unit 3 – Food")
+    st.subheader("Class 1 – Food vocabulary")
+    st.caption("A2 English Master · Flunex")
+
+    # --------------------------
+    # LEARNING GOALS
+    # --------------------------
+    with st.expander("🎯 Learning goals for this class"):
+        st.markdown(
+            """
+By the end of this class, you will be able to:
+
+- Recognise and use basic **food vocabulary** (fruits, vegetables, drinks, meals).  
+- Talk about what you **like** and **don’t like** eating and drinking.  
+- Understand a short **listening** about shopping for food.  
+- Practice simple **speaking** about food preferences.
+            """
+        )
+
+    # --------------------------
+    # MAIN TABS
+    # --------------------------
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
+        ["Warm-up", "Vocabulary", "Pronunciation", "Practice", "Listening", "Speaking & Wrap-up"]
+    )
+
+    # ============= TAB 1: WARM-UP =============
+    with tab1:
+        st.subheader("1. Warm-up – What do you eat?")
+
+        st.markdown(
+            """
+Answer these questions in English:
+
+- What do you usually eat for **breakfast**?  
+- What do you usually eat for **lunch**?  
+- What do you usually eat for **dinner**?  
+
+Write short sentences:
+            """
+        )
+
+        warmup_text = st.text_area(
+            "Write your answers here:",
+            placeholder="Example: For breakfast I usually eat eggs and tortillas. For lunch I eat chicken and rice..."
+        )
+
+        st.markdown("---")
+        st.markdown("Now, look at the list and think: **Which foods do you like? Which foods don’t you like?**")
+
+        foods_like = st.multiselect(
+            "Tick the foods you like:",
+            [
+                "apples", "bananas", "oranges", "grapes",
+                "tomatoes", "carrots", "lettuce", "onions",
+                "chicken", "fish", "rice", "pasta",
+                "water", "juice", "coffee", "tea"
+            ]
+        )
+
+        if foods_like:
+            st.info("Good! Now try to say: **I like... / I don’t like...** using your list.")
+
+    # ============= TAB 2: VOCABULARY =============
+    with tab2:
+        st.subheader("2. Vocabulary – Food words")
+
+        st.markdown("### 2.1 Food groups")
+
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.markdown(
+                """
+**Fruits**
+
+- apple  
+- banana  
+- orange  
+- grape  
+- pineapple  
+- mango  
+                """
+            )
+
+        with col2:
+            st.markdown(
+                """
+**Vegetables**
+
+- tomato  
+- carrot  
+- onion  
+- lettuce  
+- potato  
+- cucumber  
+                """
+            )
+
+        with col3:
+            st.markdown(
+                """
+**Drinks**
+
+- water  
+- juice  
+- soda  
+- coffee  
+- tea  
+- milk  
+                """
+            )
+
+        with col4:
+            st.markdown(
+                """
+**Other food**
+
+- bread  
+- rice  
+- pasta  
+- eggs  
+- cheese  
+- chicken  
+- fish  
+                """
+            )
+
+        st.markdown("---")
+        st.markdown("### 2.2 Check meaning")
+
+        q_vocab = st.selectbox(
+            "Which word is a **drink**?",
+            ["apple", "bread", "juice", "carrot"]
+        )
+
+        if q_vocab:
+            if q_vocab == "juice":
+                st.success("Correct ✅. **Juice** is a drink.")
+            else:
+                st.warning("Not exactly. The drink is **juice**.")
+
+        st.markdown("---")
+        st.markdown("### 2.3 Mini matching activity (mental)")
+
+        st.markdown(
+            """
+Match the pairs in your mind:
+
+- milk → drink / fruit?  
+- carrot → drink / vegetable?  
+- rice → fruit / other food?  
+
+Then say the answers:  
+**Milk is a drink. Carrot is a vegetable. Rice is food.**
+            """
+        )
+
+    # ============= TAB 3: PRONUNCIATION =============
+    with tab3:
+        st.subheader("3. Pronunciation – Listen and repeat")
+
+        st.markdown(
+            """
+### 3.1 Listen to the food words
+
+First, listen to the pronunciation and repeat out loud.
+            """
+        )
+
+        audio1_path = AUDIO_DIR / "U3_C1_audio1_food_words.mp3"
+        st.audio(str(audio1_path))
+
+        st.markdown(
+            """
+Repeat these groups of words:
+
+- **Fruits:** apple, banana, orange, mango  
+- **Vegetables:** tomato, carrot, potato, onion  
+- **Drinks:** water, coffee, juice, tea  
+
+Focus on **word stress**:  
+- **OR**-ange, **TO**-mato, ba-**NA**-na
+            """
+        )
+
+        st.markdown("---")
+        st.markdown("### 3.2 Sound check")
+
+        difficult_word = st.text_input(
+            "Write one word that is difficult to pronounce for you:",
+            placeholder="Example: vegetable"
+        )
+
+        if difficult_word:
+            st.info("Good! Practice that word 5 times: slowly, clearly and with correct stress.")
+
+    # ============= TAB 4: PRACTICE =============
+    with tab4:
+        st.subheader("4. Practice – Food and likes/dislikes")
+
+        st.markdown("### 4.1 Complete the sentences")
+
+        p1 = st.text_input("1) I like ______ (fruit).")
+        p2 = st.text_input("2) I don’t like ______ (vegetable).")
+        p3 = st.text_input("3) I usually drink ______ for breakfast.")
+        p4 = st.text_input("4) For lunch I eat ______ and ______.")
+        p5 = st.text_input("5) My favourite drink is ______.")
+
+        if st.button("Show sample answers – Practice"):
+            st.markdown(
+                """
+**Sample answers (just examples):**
+
+1) I like **mango**.  
+2) I don’t like **onions**.  
+3) I usually drink **coffee** for breakfast.  
+4) For lunch I eat **chicken** and **rice**.  
+5) My favourite drink is **orange juice**.
+                """
+            )
+
+        st.markdown("---")
+        st.markdown("### 4.2 Choose the correct option")
+
+        mc1 = st.radio(
+            "A: Are you thirsty?\nB: Yes, I want a...",
+            ["apple", "water", "carrot"],
+            index=1
+        )
+
+        mc2 = st.radio(
+            "Which is a **vegetable**?",
+            ["tea", "banana", "tomato"],
+            index=2
+        )
+
+        if st.button("Check answers – Multiple choice"):
+            st.info("Suggested answers: 1) **water**  2) **tomato**")
+
+    # ============= TAB 5: LISTENING =============
+    with tab5:
+        st.subheader("5. Listening – At the supermarket")
+
+        st.markdown(
+            """
+### 5.1 First listening – Just listen
+
+Listen to a short dialogue in a supermarket.
+
+> Audio 2: *At the supermarket*
+
+Then answer the questions.
+            """
+        )
+
+        audio2_path = AUDIO_DIR / "U3_C1_audio2_at_the_supermarket.mp3"
+        st.audio(str(audio2_path))
+
+        st.markdown("### 5.2 Comprehension questions")
+
+        l1 = st.radio(
+            "1) What does the woman want?",
+            [
+                "Some apples and bananas",
+                "Bread and milk",
+                "Chicken and fish"
+            ]
+        )
+
+        l2 = st.radio(
+            "2) What drink do they buy?",
+            [
+                "Water",
+                "Orange juice",
+                "Coffee"
+            ]
+        )
+
+        if st.button("Check answers – Listening"):
+            st.info(
+                "Suggested key (adapt to your final script):\n\n"
+                "1) ✅ Some apples and bananas\n"
+                "2) ✅ Orange juice"
+            )
+
+        st.markdown("---")
+        st.markdown("### 5.3 Write 2–3 sentences about your shopping list")
+
+        shopping_text = st.text_area(
+            "Example: Today I want to buy rice, tomatoes, chicken and water.",
+            key="u3c1_shopping_list"
+        )
+
+    # ============= TAB 6: SPEAKING & WRAP-UP =============
+    with tab6:
+        st.subheader("6. Speaking & Wrap-up")
+
+        st.markdown(
+            """
+### 6.1 Speaking prompts
+
+Use these questions with a partner or record yourself:
+
+1. What is your favourite food?  
+2. What food don’t you like?  
+3. What do you usually eat for breakfast / lunch / dinner?  
+4. What healthy food do you eat every week?  
+
+### 6.2 Reflection
+
+Complete:
+
+- Today I learned new **food words** like...  
+- Now I can **talk about food I like and don’t like**.  
+- One sentence I remember from this class is...
+            """
+        )
+
+        reflection = st.text_area(
+            "Write your reflection here:",
+            key="u3c1_reflection"
+        )
+
+        st.success("Great job! 🥗 Keep using this food vocabulary in real life.")
 
 # ==========================
 # PAGES
