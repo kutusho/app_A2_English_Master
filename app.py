@@ -7,6 +7,8 @@ import datetime as dt
 import csv
 import textwrap
 import requests  # <-- NEW: para llamar a la API de ElevenLabs
+import base64
+import json
 from typing import Optional
 
 # ==========================
@@ -29,6 +31,22 @@ RESPONSES_FILE = RESPONSES_DIR / "unit2_responses.csv"
 CONTENT_DIR = BASE_DIR / "content"
 CONTENT_DIR.mkdir(exist_ok=True)
 
+# Fallback visual (used when no hero image is available)
+_FLUNEX_GRADIENT_SVG = """
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 900' preserveAspectRatio='xMidYMid slice'>
+  <defs>
+    <linearGradient id='flx' x1='0%' y1='0%' x2='100%' y2='100%'>
+      <stop offset='0%' stop-color='#1f4b99' stop-opacity='0.95'/>
+      <stop offset='50%' stop-color='#274b8f' stop-opacity='0.9'/>
+      <stop offset='100%' stop-color='#0f172a' stop-opacity='0.92'/>
+    </linearGradient>
+  </defs>
+  <rect width='1600' height='900' fill='url(#flx)'/>
+  <circle cx='450' cy='280' r='180' fill='rgba(255,255,255,0.08)'/>
+  <circle cx='1250' cy='620' r='260' fill='rgba(255,255,255,0.05)'/>
+</svg>
+""".strip()
+FLUNEX_GRADIENT_DATA_URI = "data:image/svg+xml;base64," + base64.b64encode(_FLUNEX_GRADIENT_SVG.encode("utf-8")).decode("ascii")
 
 # ElevenLabs API key desde secrets
 ELEVEN_API_KEY = st.secrets.get("ELEVEN_API_KEY", None)
@@ -272,6 +290,288 @@ def inject_global_css():
     st.markdown(
         """
 <style>
+:root {
+    --flx-primary: #1f4b99;
+    --flx-primary-strong: #274b8f;
+    --flx-ink: #0f172a;
+    --flx-surface: #ffffff;
+    --flx-surface-glass: rgba(255, 255, 255, 0.86);
+}
+
+body {
+    background: #f8fafc;
+    color: var(--flx-ink);
+}
+
+.flx-shell {
+    position: relative;
+    padding: 1.25rem;
+    border-radius: 1.4rem;
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    margin-bottom: 1.4rem;
+}
+
+.flx-shell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(140deg, rgba(15, 23, 42, 0.75), rgba(31, 75, 153, 0.55));
+    pointer-events: none;
+}
+
+.flx-shell__header {
+    position: sticky;
+    top: 0.6rem;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    background: rgba(255, 255, 255, 0.82);
+    border-radius: 999px;
+    border: 1px solid rgba(31, 75, 153, 0.2);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(12px);
+}
+
+.flx-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.flx-brand img {
+    width: 58px;
+    height: 58px;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.15));
+}
+
+.flx-brand__title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    color: var(--flx-ink);
+}
+
+.flx-brand__subtitle {
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.flx-level-pill {
+    background: linear-gradient(135deg, var(--flx-primary), var(--flx-primary-strong));
+    color: #ffffff;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.92rem;
+    box-shadow: 0 10px 24px rgba(31, 75, 153, 0.35);
+}
+
+.flx-shell__card {
+    position: relative;
+    z-index: 2;
+    margin-top: 1.6rem;
+    padding: 1.6rem;
+    border-radius: 1.2rem;
+    background: var(--flx-surface-glass);
+    border: 1px solid rgba(31, 75, 153, 0.18);
+    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+    backdrop-filter: blur(14px);
+    max-width: 780px;
+}
+
+.flx-shell__eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #0f172a;
+    font-size: 0.82rem;
+    font-weight: 800;
+    margin-bottom: 0.15rem;
+}
+
+.flx-shell__headline {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--flx-ink);
+    margin-bottom: 0.4rem;
+}
+
+.flx-shell__copy {
+    font-size: 1.02rem;
+    color: #1f2937;
+    margin-bottom: 0.8rem;
+}
+
+.flx-shell__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    margin-top: 1.2rem;
+}
+
+.flx-action-form {
+    margin: 0;
+}
+
+.flx-cta {
+    width: 100%;
+    border: none;
+    border-radius: 0.95rem;
+    padding: 0.95rem 1rem;
+    font-size: 1.05rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.flx-cta--primary {
+    background: linear-gradient(135deg, var(--flx-primary), var(--flx-primary-strong));
+    color: #ffffff;
+    box-shadow: 0 16px 35px rgba(31, 75, 153, 0.35);
+}
+
+.flx-cta--ghost {
+    background: rgba(255, 255, 255, 0.88);
+    color: var(--flx-primary);
+    border: 1px solid rgba(31, 75, 153, 0.2);
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.18);
+}
+
+.flx-cta:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+}
+
+.flx-cta:active {
+    transform: translateY(0);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.flx-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.9rem;
+    margin: 0.2rem 0 1rem 0;
+}
+
+.flx-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(247, 249, 255, 0.9));
+    border: 1px solid rgba(31, 75, 153, 0.12);
+    border-radius: 1rem;
+    padding: 0.9rem 1rem;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+    transition: transform 0.12s ease, box-shadow 0.18s ease;
+}
+
+.flx-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 46px rgba(15, 23, 42, 0.12);
+}
+
+.flx-card h3 {
+    margin-bottom: 0.35rem;
+    color: var(--flx-ink);
+}
+
+.flx-card p {
+    color: #1f2937;
+    font-size: 0.96rem;
+    margin-bottom: 0;
+}
+
+.flx-bullet {
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+    color: var(--flx-ink);
+}
+
+.flx-bullet span {
+    color: #1f2937;
+    font-weight: 500;
+}
+
+.flx-note {
+    background: rgba(31, 75, 153, 0.08);
+    border: 1px solid rgba(31, 75, 153, 0.22);
+    border-radius: 0.9rem;
+    padding: 0.85rem 1rem;
+    color: #0f172a;
+    margin: 0.9rem 0;
+}
+
+.flx-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.75);
+    color: var(--flx-primary);
+    border: 1px solid rgba(31, 75, 153, 0.16);
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    font-weight: 700;
+}
+
+.flx-sub-banner {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    padding: 1rem 1.2rem;
+    margin: 0.6rem 0 1.1rem 0;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid rgba(31, 75, 153, 0.18);
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16);
+}
+
+.flx-sub-banner::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.78), rgba(31, 75, 153, 0.5));
+}
+
+.flx-sub-banner__text {
+    position: relative;
+    z-index: 2;
+    color: #ffffff;
+}
+
+.flx-sub-banner__headline {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 0.2rem;
+}
+
+.flx-sub-banner__caption {
+    font-size: 0.98rem;
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    .flx-shell {
+        padding: 1rem;
+    }
+    .flx-shell__header {
+        flex-direction: column;
+        align-items: flex-start;
+        position: sticky;
+    }
+    .flx-shell__card {
+        padding: 1.2rem;
+    }
+    .flx-shell__headline {
+        font-size: 1.6rem;
+    }
+}
+
 .app-content-wrapper {
     padding-top: 0.5rem;
 }
@@ -1115,6 +1415,104 @@ def show_signature():
             st.warning("The file 'firma-ivan-diaz.png' exists but is not a valid image.")
     else:
         st.info("Add your signature as 'assets/firma-ivan-diaz.png' to display it here.")
+
+# ==========================
+# APP SHELL / HERO
+# ==========================
+
+def get_logo_data_uri() -> str:
+    """
+    Returns a data URI for the Flunex logo to embed it in HTML headers.
+    """
+    logo_path = BASE_DIR / "assets" / "logo-english-classes.png"
+    if not logo_path.exists():
+        return ""
+    try:
+        encoded = base64.b64encode(logo_path.read_bytes()).decode("ascii")
+        suffix = logo_path.suffix.lower()
+        mime = "image/png" if suffix in {".png", ".apng", ".webp"} else "image/jpeg"
+        return f"data:{mime};base64,{encoded}"
+    except Exception:
+        return ""
+
+
+def get_shell_media(query: str = "english learning") -> dict:
+    """
+    Placeholder media for the hero area. It will be upgraded with live images
+    when an API key is available.
+    """
+    return {
+        "url": FLUNEX_GRADIENT_DATA_URI,
+        "alt": f"Flunex hero for {query}",
+        "query": query,
+        "attribution": None,
+    }
+
+
+def render_app_shell():
+    hero_media = get_shell_media("english learning")
+    hero_url = (hero_media.get("url") or FLUNEX_GRADIENT_DATA_URI).replace("'", "%27")
+    logo_uri = get_logo_data_uri()
+    logo_html = f'<img src="{logo_uri}" alt="Flunex logo" />' if logo_uri else "<div class='flx-level-pill'>Flunex</div>"
+
+    credit = hero_media.get("attribution") or "English learning · classroom"
+    shell_html = textwrap.dedent(
+        f"""
+<div class="flx-shell" style="background-image: linear-gradient(125deg, rgba(15,23,42,0.78), rgba(31,75,153,0.6)), url('{hero_url}');">
+  <div class="flx-shell__header">
+    <div class="flx-brand">
+      {logo_html}
+      <div>
+        <div class="flx-brand__title">Flunex · A2 English Master</div>
+        <div class="flx-brand__subtitle">Learn, teach and track progress with confidence</div>
+      </div>
+    </div>
+    <div class="flx-level-pill">A2 · Elementary</div>
+  </div>
+
+  <div class="flx-shell__card">
+    <div class="flx-shell__eyebrow">Welcome</div>
+    <div class="flx-shell__headline">Communicate clearly in real situations</div>
+    <p class="flx-shell__copy">
+      Practical lessons, structured progress and bilingual guidance for tourism, work and everyday life.
+      Choose your path below.
+    </p>
+    <div class="flx-shell__actions">
+      <form method="get" class="flx-action-form">
+        <input type="hidden" name="page" value="Access" />
+        <button type="submit" class="flx-cta flx-cta--primary">I am a student</button>
+      </form>
+      <form method="get" class="flx-action-form">
+        <input type="hidden" name="page" value="Content Admin" />
+        <button type="submit" class="flx-cta flx-cta--ghost">I am a teacher / admin</button>
+      </form>
+    </div>
+    <div class="flx-tag">{credit}</div>
+  </div>
+</div>
+"""
+    )
+    st.markdown(shell_html, unsafe_allow_html=True)
+
+
+def render_banner(query: str, title: str, caption: str = ""):
+    media = get_shell_media(query)
+    url = (media.get("url") or FLUNEX_GRADIENT_DATA_URI).replace("'", "%27")
+    caption_html = f"<div class='flx-sub-banner__caption'>{caption}</div>" if caption else ""
+
+    st.markdown(
+        textwrap.dedent(
+            f"""
+<div class="flx-sub-banner" style="background-image: linear-gradient(140deg, rgba(15,23,42,0.78), rgba(31,75,153,0.5)), url('{url}');">
+  <div class="flx-sub-banner__text">
+    <div class="flx-sub-banner__headline">{title}</div>
+    {caption_html}
+  </div>
+</div>
+"""
+        ),
+        unsafe_allow_html=True,
+    )
 
 
 # ==========================
@@ -2822,55 +3220,44 @@ def render_interactive_class(config):
 # ==========================
 
 def overview_page():
-    show_logo()
-    st.title("📘 A2 English Master – Elementary Course")
+    render_app_shell()
 
+    st.markdown("### Course snapshot")
     st.markdown(
         """
-### Learn to communicate with confidence in real situations
+<div class="flx-card-grid">
+  <div class="flx-card">
+    <h3>🎯 For whom?</h3>
+    <p>Adults and young adults.<br>Tourism, service and business professionals.<br>Learners who finished A1 and want the next step.</p>
+  </div>
+  <div class="flx-card">
+    <h3>📚 What’s inside?</h3>
+    <p>10 carefully structured units.<br>Clear grammar and vocabulary focus.<br>Step-by-step lessons with theory, practice and insights.<br>Progress checks and final assessment.</p>
+  </div>
+  <div class="flx-card">
+    <h3>🌍 Why this course?</h3>
+    <p>Based on Cambridge Empower A2 (Second Edition).<br>Strong focus on speaking and listening.<br>Real-world topics: travel, work, culture and health.<br>Designed by Iván Díaz, Tourist Guide & English Instructor.</p>
+  </div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
 
-This A2 English program is designed for learners who want *clear progress*, 
-practical language and a professional learning experience.
-
-**With this course your students will:**
-- Speak about their life, work, studies and travel plans in clear, simple English.  
+    st.markdown("### What you gain")
+    st.markdown(
+        """
+- Speak about life, work, studies and travel plans in clear, simple English.  
 - Understand real conversations at normal speed in common situations.  
 - Write short emails, messages and descriptions with correct grammar.  
 - Build a solid base to move confidently to **B1 – Intermediate**.
         """
     )
+    st.markdown(
+        "<div class='flx-note'>Real content, bilingual guidance and progress-friendly tasks adapted for tourism and service contexts.</div>",
+        unsafe_allow_html=True,
+    )
 
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.subheader("🎯 For whom?")
-        st.write(
-            "- Adults and young adults\n"
-            "- Tourism, service and business professionals\n"
-            "- Learners who finished A1 and want the next step"
-        )
-
-    with col2:
-        st.subheader("📚 What’s inside?")
-        st.write(
-            "- 10 carefully structured units\n"
-            "- Clear grammar and vocabulary focus\n"
-            "- Step-by-step lessons with theory, practice and insights\n"
-            "- Progress checks and final assessment"
-        )
-
-    with col3:
-        st.subheader("🌍 Why this course?")
-        st.write(
-            "- Based on Cambridge Empower A2 (Second Edition)\n"
-            "- Strong focus on speaking and listening\n"
-            "- Real-world topics: travel, work, culture and health\n"
-            "- Designed by Iván Díaz, Tourist Guide & English Instructor"
-        )
-
-    st.markdown("---")
     st.markdown("#### Quick course facts")
-
     facts_df = pd.DataFrame(
         [
             ["Level", COURSE_INFO["level"]],
@@ -2884,7 +3271,7 @@ practical language and a professional learning experience.
     st.table(facts_df)
 
     st.markdown("### 🚀 Ready to start?")
-    if st.button("Start your first class", use_container_width=True):
+    if st.button("Start your first class", use_container_width=True, key="cta_start_class"):
         go_to_page("Enter your class")
 
     with st.expander("View Spanish summary / Ver resumen en español"):
