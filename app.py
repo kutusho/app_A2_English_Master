@@ -7,6 +7,7 @@ import datetime as dt
 import csv
 import textwrap
 import requests  # <-- NEW: para llamar a la API de ElevenLabs
+from typing import Optional
 
 # ==========================
 # BASIC CONFIG
@@ -55,6 +56,46 @@ def get_current_user():
         auth.get("email", ""),
         auth.get("role", "guest"),
     )
+
+
+def logout_user():
+    st.session_state["auth"] = {
+        "logged_in": False,
+        "role": "guest",
+        "name": "",
+        "email": "",
+    }
+
+
+def render_user_status_bar():
+    """Show current session info on the top-right corner with a logout option."""
+    auth = st.session_state.get("auth", {})
+    logged_in = auth.get("logged_in", False)
+    name = auth.get("name") or auth.get("email") or "Invitado"
+
+    container = st.container()
+    _, col_status = container.columns([0.62, 0.38])
+    with col_status:
+        if logged_in:
+            st.markdown(
+                f"<div style='text-align:right; margin-bottom:0.2rem;'>"
+                f"<span class='status-pill'>Iniciaste sesión como {name}</span>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
+            logout_col1, logout_col2 = st.columns([0.3, 0.7])
+            with logout_col2:
+                if st.button("Cerrar sesión", key="topbar_logout", use_container_width=True):
+                    logout_user()
+                    st.success("Sesión cerrada.")
+                    st.rerun()
+        else:
+            st.markdown(
+                "<div style='text-align:right; margin-bottom:0.2rem;'>"
+                "<span class='status-pill'>No has iniciado sesión</span></div>",
+                unsafe_allow_html=True,
+            )
+            st.caption("Ve a Access para registrarte o iniciar sesión.")
 
 
 def save_unit2_response(user_email, user_name, session, hour, exercise_id, text):
@@ -128,45 +169,51 @@ def unit2_answer_box(session, hour, exercise_id, label, height=180):
 # CONTENT STORAGE HELPERS
 # ==========================
 
-def save_content_block(unit: int, lesson: int, content_key: str, text: str):
+def _normalize_content_key(content_key: str) -> str:
     """
-    Guarda un bloque de contenido en:
-      content/unit<unit>/class<lesson>/<content_key>.txt
-    Ejemplo:
-      content/unit3/class1/audio_intro.txt
+    Normalize and validate the filename/key used for dynamic content.
+    Only letters, numbers, underscores and dashes are allowed.
     """
     if not content_key:
         raise ValueError("content_key is required")
-
-    # Sanitizar un poco la key para evitar caracteres raros en el archivo
     safe_key = "".join(c for c in content_key if c.isalnum() or c in ("_", "-")).strip()
     if not safe_key:
         raise ValueError("content_key is invalid")
+    return safe_key
 
-    folder = CONTENT_DIR / f"unit{unit}" / f"class{lesson}"
-    folder.mkdir(parents=True, exist_ok=True)
-    file_path = folder / f"{safe_key}.txt"
 
+def _content_file_path(unit: int, lesson: int, content_key: str) -> Path:
+    """
+    Build the path where a content block should be stored.
+    Example: content/unit3/class1/audio_intro.txt
+    """
+    safe_key = _normalize_content_key(content_key)
+    return CONTENT_DIR / f"unit{unit}" / f"class{lesson}" / f"{safe_key}.txt"
+
+
+def save_content_block(unit: int, lesson: int, content_key: str, text: str) -> Path:
+    """
+    Guarda un bloque de contenido en:
+      content/unit<unit>/class<lesson>/<content_key>.txt
+    """
+    file_path = _content_file_path(unit, lesson, content_key)
+    file_path.parent.mkdir(parents=True, exist_ok=True)
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(text or "")
-
     return file_path
 
 
-def load_content_block(unit: int, lesson: int, content_key: str) -> str:
+def load_content_block(unit: int, lesson: int, content_key: str) -> Optional[str]:
     """
-    Carga un bloque de contenido. Si no existe, regresa cadena vacía.
+    Carga un bloque de contenido. Regresa None si no existe o si la llave es inválida.
     """
-    if not content_key:
-        return ""
+    try:
+        file_path = _content_file_path(unit, lesson, content_key)
+    except ValueError:
+        return None
 
-    safe_key = "".join(c for c in content_key if c.isalnum() or c in ("_", "-")).strip()
-    if not safe_key:
-        return ""
-
-    file_path = CONTENT_DIR / f"unit{unit}" / f"class{lesson}" / f"{safe_key}.txt"
     if not file_path.exists():
-        return ""
+        return None
 
     with open(file_path, "r", encoding="utf-8") as f:
         return f.read()
@@ -225,6 +272,64 @@ def inject_global_css():
     st.markdown(
         """
 <style>
+.app-content-wrapper {
+    padding-top: 0.5rem;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(31, 75, 153, 0.1);
+    color: #1f4b99;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0.5rem;
+    padding-bottom: 0.2rem;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.stTabs [data-baseweb="tab"] {
+    background: rgba(15, 23, 42, 0.05);
+    border-radius: 0.6rem;
+    padding: 0.35rem 0.9rem;
+    font-weight: 600;
+    color: #0f172a;
+    border: 1px solid transparent;
+}
+
+.stTabs [aria-selected="true"][data-baseweb="tab"] {
+    background: #1f4b99;
+    color: #ffffff;
+    border-color: rgba(15, 23, 42, 0.15);
+}
+
+.audio-card {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 0.75rem;
+    padding: 0.6rem 0.9rem;
+    margin-bottom: 0.75rem;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.audio-card h4 {
+    margin-bottom: 0.2rem;
+}
+
+.info-card {
+    border-radius: 0.9rem;
+    padding: 0.85rem;
+    background: rgba(31, 75, 153, 0.08);
+    border: 1px solid rgba(31, 75, 153, 0.15);
+    margin-bottom: 0.8rem;
+    font-size: 0.92rem;
+}
+
 .floating-menu-wrapper {
     position: fixed;
     top: 4.5rem;
@@ -332,8 +437,6 @@ def inject_global_css():
         """,
         unsafe_allow_html=True
     )
-
-
 # ==========================
 # COURSE DATA
 # ==========================
@@ -1054,7 +1157,7 @@ def _rerun():
     try:
         st.rerun()
     except Exception:
-        st.experimental_rerun()
+        st.rerun()
 
 
 def go_to_page(page_id: str):
@@ -1116,6 +1219,14 @@ def _audio_or_warning(filename: str):
         st.audio(str(audio_path))
     else:
         st.warning(f"Audio file not found: `audio/{filename}`")
+
+
+def render_audio_card(title: str, filename: str, description: Optional[str] = None):
+    """Display an audio block with a title and optional description."""
+    st.markdown(f"<div class='audio-card'><h4>{title}</h4></div>", unsafe_allow_html=True)
+    if description:
+        st.caption(description)
+    _audio_or_warning(filename)
 
 
 def render_presentation_html(filename: str):
@@ -1714,8 +1825,7 @@ First, listen to the pronunciation and repeat out loud.
             """
         )
 
-        # Usa helper que evita errores si el archivo no existe
-        _audio_or_warning("U3_C1_audio1_food_words.mp3")
+        render_audio_card("Audio – Food words", "U3_C1_audio1_food_words.mp3")
 
         st.markdown(
             """
@@ -1800,9 +1910,20 @@ Then answer the questions.
             """
         )
 
-        _audio_or_warning("U3_C1_audio2_at_the_supermarket.mp3")
+        render_audio_card("Audio – At the supermarket", "U3_C1_audio2_at_the_supermarket.mp3")
 
         st.markdown("### 5.2 Comprehension questions")
+        dialogue_script = load_content_block(3, 1, "u3_c1_supermarket_dialogue")
+        with st.expander("Teacher script – supermarket dialogue (from Content Admin)"):
+            if dialogue_script:
+                st.text(dialogue_script)
+            else:
+                st.info(
+                    "No dialogue saved yet. Go to **Content Admin** → "
+                    "Unit 3, Class 1, key `u3_c1_supermarket_dialogue` "
+                    "and paste your script there."
+                )        
+                    
 
         l1 = st.radio(
             "1) What does the woman want?",
@@ -1910,6 +2031,792 @@ Complete:
                     st.audio(str(path))
 
 
+# ==========================
+# INTERACTIVE CLASS CONFIG (Units 1 & 2)
+# ==========================
+
+INTERACTIVE_CLASS_CONTENT = {
+    (1, "Class 1 – Personal information"): {
+        "unit_number": 1,
+        "class_number": 1,
+        "class_title": "Class 1 – Personal information",
+        "key_prefix": "u1c1",
+        "learning_goals": [
+            "Use verb be (am / is / are) to introduce yourself and other people.",
+            "Ask and answer basic personal questions about name, country and job.",
+            "Spell important words such as names or email addresses."
+        ],
+        "warmup": {
+            "title": "Warm-up – Meet & greet",
+            "intro": "Imagine you meet a new classmate. Answer the questions:",
+            "questions": [
+                "What is your full name?",
+                "Where are you from?",
+                "What do you do (job or studies)?"
+            ],
+            "placeholder": "Example: My name is Iván. I am from Tuxtla. I am a tourist guide."
+        },
+        "language_focus": [
+            {
+                "title": "Verb be – forms",
+                "items": [
+                    "I am / You are / He is / She is / We are / They are",
+                    "Questions: Are you...? Is he...? Where are you from?",
+                    "Short answers: Yes, I am. / No, I’m not."
+                ]
+            },
+            {
+                "title": "Useful introductions",
+                "items": [
+                    "Hi, I’m ___ / Nice to meet you!",
+                    "This is my friend ___",
+                    "I’m from ___ / I live in ___",
+                    "I’m a ___ (job/student)."
+                ]
+            }
+        ],
+        "practice_prompts": [
+            "Write a short introduction (name + city).",
+            "Describe one friend or colleague.",
+            "Create one question to continue a conversation."
+        ],
+        "multiple_choice": [
+            {
+                "question": "Choose the correct sentence.",
+                "options": [
+                    "She are from Brazil.",
+                    "She is from Brazil.",
+                    "She am from Brazil."
+                ],
+                "answer": "She is from Brazil."
+            },
+            {
+                "question": "Complete: ___ you from Mérida?",
+                "options": ["Is", "Are", "Do"],
+                "answer": "Are"
+            }
+        ],
+        "listening": {
+            "title": "Listening – First day in class",
+            "description": (
+                "Use these audios to model introductions, pronunciation and speaking tasks. "
+                "Play them in order to guide students through the activity."
+            ),
+            "audio_sections": [
+                {"title": "Audio 1 – Welcome & instructions", "file": "unit1_hour2_welcome.mp3"},
+                {"title": "Audio 2 – Sample introductions", "file": "unit1_hour2_sample_intro.mp3"},
+                {"title": "Audio 3 – Verb be pronunciation", "file": "unit1_hour2_be_pronunciation.mp3"},
+                {"title": "Audio 4 – Speaking task guidance", "file": "unit1_hour2_speaking_task.mp3"},
+                {"title": "Audio 5 – Final listening practice", "file": "unit1_hour2_final_listening.mp3"},
+                {"title": "Audio 6 – Wrap-up message", "file": "unit1_hour2_wrapup.mp3"},
+            ],
+            "script_key": "u1_c1_introductions_dialogue",
+            "questions": [
+                {
+                    "question": "Where is Miguel from?",
+                    "options": ["Colombia", "Mexico City", "Lima"],
+                    "answer": "Mexico City"
+                },
+                {
+                    "question": "What is Ana’s job?",
+                    "options": ["Tour guide", "Designer", "Student"],
+                    "answer": "Tour guide"
+                }
+            ],
+            "writing_prompt": "Write two sentences introducing Ana and Miguel."
+        },
+        "speaking": {
+            "prompts": [
+                "Role play: introduce yourself to a partner.",
+                "Present a friend to the group: “This is… He/She is from…”.",
+                "Practise spelling your name and email slowly."
+            ],
+            "reflection": [
+                "Today I can introduce myself using verb **be**.",
+                "I feel more confident asking basic questions.",
+                "One sentence I can use with tourists is..."
+            ]
+        }
+    },
+    (1, "Class 2 – Countries & jobs"): {
+        "unit_number": 1,
+        "class_number": 2,
+        "class_title": "Class 2 – Countries & jobs",
+        "key_prefix": "u1c2",
+        "learning_goals": [
+            "Remember at least 12 countries and nationalities.",
+            "Use Wh-questions: Where are you from? What do you do?",
+            "Talk about different jobs in tourism and services."
+        ],
+        "warmup": {
+            "title": "Warm-up – Around the world",
+            "intro": "Write three countries you have visited or want to visit.",
+            "questions": [
+                "Which countries receive tourists in your city?",
+                "Which job is popular in your family?",
+                "What job would you like to try in the future?"
+            ],
+            "placeholder": "Example: I want to visit Canada, Peru and Spain."
+        },
+        "language_focus": [
+            {
+                "title": "Countries & nationalities",
+                "items": [
+                    "Mexico – Mexican · Brazil – Brazilian",
+                    "Canada – Canadian · United States – American",
+                    "Japan – Japanese · France – French"
+                ]
+            },
+            {
+                "title": "Jobs",
+                "items": [
+                    "tour guide · receptionist · chef · driver",
+                    "teacher · student · entrepreneur",
+                    "I work as a ___ / I’m between jobs."
+                ]
+            }
+        ],
+        "practice_prompts": [
+            "Write one sentence: 'I’m ___ and I’m from ___.'",
+            "Describe a person you know (name, nationality, job).",
+            "Create a short survey question for the class."
+        ],
+        "multiple_choice": [
+            {
+                "question": "Choose the correct nationality:",
+                "options": ["Spainish", "Spanish", "Spannish"],
+                "answer": "Spanish"
+            },
+            {
+                "question": "Complete: What ___ you do?",
+                "options": ["do", "are", "does"],
+                "answer": "do"
+            }
+        ],
+        "listening": {
+            "title": "Listening – At a travel fair",
+            "description": "Play these audios to guide students from model introductions to the final group task.",
+            "audio_sections": [
+                {"title": "Audio 1 – Welcome", "file": "U1_S2_audio1_welcome.mp3"},
+                {"title": "Audio 2 – Question patterns", "file": "U1_S2_audio2_question_patterns.mp3"},
+                {"title": "Audio 3 – Short dialogues", "file": "U1_S2_audio3_short_dialogues.mp3"},
+                {"title": "Audio 4 – Group introduction", "file": "U1_S2_audio4_group_introduction.mp3"},
+                {"title": "Audio 5 – Final task instructions", "file": "U1_S2_audio5_final_task.mp3"},
+                {"title": "Bonus audio – Countries practice", "file": "unit1_hour2_countries.mp3"},
+                {"title": "Bonus audio – Jobs vocabulary", "file": "unit1_hour2_jobs.mp3"},
+            ],
+            "script_key": "u1_c2_travel_fair_script",
+            "questions": [
+                {
+                    "question": "Where is Elena from?",
+                    "options": ["Chile", "Spain", "Argentina"],
+                    "answer": "Chile"
+                },
+                {
+                    "question": "What does Ken do?",
+                    "options": ["Pilot", "Hotel manager", "Photographer"],
+                    "answer": "Photographer"
+                }
+            ],
+            "writing_prompt": "Write one dialogue with a tourist: ask country + job."
+        },
+        "speaking": {
+            "prompts": [
+                "Play 'Find someone who...' (find a colleague with a specific job).",
+                "Explain what jobs are important in your company.",
+                "Compare two nationalities that visit your area."
+            ],
+            "reflection": [
+                "New words I learned today...",
+                "I can now ask tourists about their job/country.",
+                "One strategy to remember nationalities is..."
+            ]
+        }
+    },
+    (1, "Class 3 – People you know"): {
+        "unit_number": 1,
+        "class_number": 3,
+        "class_title": "Class 3 – People you know",
+        "key_prefix": "u1c3",
+        "learning_goals": [
+            "Review verb be and adjectives to describe people.",
+            "Write a short description about friends or family members.",
+            "Use Wh-questions (Who, What, Where) to get details."
+        ],
+        "warmup": {
+            "title": "Warm-up – Important people",
+            "intro": "Think of three important people in your life.",
+            "questions": [
+                "Who are they?",
+                "Where do they live?",
+                "Why are they important to you?"
+            ],
+            "placeholder": "Example: My brother Luis lives in Cancún. He is funny and patient."
+        },
+        "language_focus": [
+            {
+                "title": "Adjectives for people",
+                "items": [
+                    "friendly · funny · hard-working · creative",
+                    "quiet · outgoing · patient · organized"
+                ]
+            },
+            {
+                "title": "Question review",
+                "items": [
+                    "Who is he/she?",
+                    "What does he/she do?",
+                    "Where is he/she from?"
+                ]
+            }
+        ],
+        "practice_prompts": [
+            "Describe a family member in two sentences.",
+            "Write three adjectives for a colleague.",
+            "Make one question to learn more about a classmate."
+        ],
+        "multiple_choice": [
+            {
+                "question": "Choose the best adjective: 'My boss is very organized and ___.'",
+                "options": ["late", "punctual", "messy"],
+                "answer": "punctual"
+            },
+            {
+                "question": "Which sentence is correct?",
+                "options": [
+                    "Where he is from?",
+                    "Where is he from?",
+                    "Where from he is?"
+                ],
+                "answer": "Where is he from?"
+            }
+        ],
+        "listening": {
+            "title": "Listening – Talking about family",
+            "description": "Use the following audios (intro, description models and final task) to guide your class.",
+            "audio_sections": [
+                {"title": "Audio 1 – Intro", "file": "U1_S3_audio1_intro.mp3"},
+                {"title": "Audio 2 – Adjectives drill", "file": "U1_S3_audio2_adjectives_drill.mp3"},
+                {"title": "Audio 3 – Short descriptions", "file": "U1_S3_audio3_short_descriptions.mp3"},
+                {"title": "Audio 4 – Long description", "file": "U1_S3_audio4_long_description.mp3"},
+                {"title": "Audio 5 – Final task", "file": "U1_S3_audio5_final_task.mp3"},
+            ],
+            "script_key": "u1_c3_family_story",
+            "questions": [
+                {
+                    "question": "What does Daniela’s dad do?",
+                    "options": ["Chef", "Engineer", "Driver"],
+                    "answer": "Driver"
+                },
+                {
+                    "question": "How does she describe her mom?",
+                    "options": ["Serious and intelligent", "Funny and creative", "Quiet and shy"],
+                    "answer": "Funny and creative"
+                }
+            ],
+            "writing_prompt": "Write one short paragraph about someone in your family."
+        },
+        "speaking": {
+            "prompts": [
+                "Show a photo (phone) and describe the person to a partner.",
+                "Tell a short anecdote about a friend.",
+                "Ask three questions about another student’s friend."
+            ],
+            "reflection": [
+                "Today I can describe people using 3+ adjectives.",
+                "I can ask follow-up questions to continue conversations.",
+                "One expression I will reuse is..."
+            ]
+        }
+    },
+    (2, "Class 1 – Daily routines"): {
+        "unit_number": 2,
+        "class_number": 1,
+        "class_title": "Class 1 – Daily routines",
+        "key_prefix": "u2c1",
+        "learning_goals": [
+            "Use present simple to talk about your routine.",
+            "Use adverbs of frequency (always, usually, sometimes, never).",
+            "Write a short paragraph describing a typical day."
+        ],
+        "warmup": {
+            "title": "Warm-up – My day",
+            "intro": "Think about your weekday routine and complete the questions.",
+            "questions": [
+                "What time do you get up?",
+                "What do you do in the morning?",
+                "When do you finish work or classes?"
+            ],
+            "placeholder": "Example: I get up at 6:30, I have coffee and check the news."
+        },
+        "language_focus": [
+            {
+                "title": "Present simple + frequency",
+                "items": [
+                    "I get up at 6:00. / She gets up at 6:00.",
+                    "Adverbs: I always start at 8. I usually drink coffee.",
+                    "Question order: What time do you...? Do you usually...?"
+                ]
+            },
+            {
+                "title": "Useful routine verbs",
+                "items": [
+                    "wake up · get dressed · go to work · have lunch · finish work · relax",
+                    "take the bus · cook dinner · study English"
+                ]
+            }
+        ],
+        "practice_prompts": [
+            "Write 3 sentences about your morning.",
+            "Write 2 sentences about your evening.",
+            "Write 1 question to ask a partner about routines."
+        ],
+        "multiple_choice": [
+            {
+                "question": "Choose the correct sentence.",
+                "options": [
+                    "She go to work at 9.",
+                    "She goes to work at 9.",
+                    "She is go to work at 9."
+                ],
+                "answer": "She goes to work at 9."
+            },
+            {
+                "question": "Adverb position: 'I ___ have breakfast at home.'",
+                "options": ["never", "never do", "do never"],
+                "answer": "never"
+            }
+        ],
+        "listening": {
+            "title": "Listening – Morning radio show",
+            "description": "Use the four audios (intro, vocab, sample routines and frequency) to build the full activity.",
+            "audio_sections": [
+                {"title": "Audio 1 – Intro", "file": "U2_S1_audio1_intro.mp3"},
+                {"title": "Audio 2 – Routines vocabulary", "file": "U2_S1_audio2_routines_vocab.mp3"},
+                {"title": "Audio 3 – Two routines", "file": "U2_S1_audio3_two_routines.mp3"},
+                {"title": "Audio 4 – Frequency practice", "file": "U2_S1_audio4_frequency.mp3"},
+            ],
+            "script_key": "u2_c1_morning_script",
+            "questions": [
+                {
+                    "question": "What time does the guest wake up?",
+                    "options": ["5:30", "6:30", "7:30"],
+                    "answer": "5:30"
+                },
+                {
+                    "question": "What does she do after breakfast?",
+                    "options": ["Goes running", "Drives to work", "Checks emails"],
+                    "answer": "Checks emails"
+                }
+            ],
+            "writing_prompt": "Write a short note: 'In the morning I..., In the afternoon I...'."
+        },
+        "speaking": {
+            "prompts": [
+                "Compare routines with a partner: find two similarities and one difference.",
+                "Explain your weekend routine vs weekday routine.",
+                "Give advice to a busy tourist: 'You should wake up early because...'"
+            ],
+            "reflection": [
+                "I can talk about my day without translating.",
+                "I can use adverbs of frequency correctly.",
+                "One action to improve my routine vocabulary is..."
+            ]
+        },
+        "answer_boxes": [
+            {
+                "session": "S1",
+                "hour": "H1",
+                "exercise_id": "routine_paragraph",
+                "label": "Write your daily routine paragraph"
+            },
+            {
+                "session": "S1",
+                "hour": "H2",
+                "exercise_id": "listening_notes",
+                "label": "Listening notes – Morning radio show"
+            }
+        ]
+    },
+    (2, "Class 2 – Free time"): {
+        "unit_number": 2,
+        "class_number": 2,
+        "class_title": "Class 2 – Free time",
+        "key_prefix": "u2c2",
+        "learning_goals": [
+            "Talk about free-time activities using present simple.",
+            "Ask and answer questions with Do you...?",
+            "Express likes/dislikes with I like / I love / I don’t like."
+        ],
+        "warmup": {
+            "title": "Warm-up – Weekend snapshot",
+            "intro": "List three things you normally do on weekends.",
+            "questions": [
+                "Do you prefer indoor or outdoor activities?",
+                "Who do you spend your free time with?",
+                "What new activity would you like to try?"
+            ],
+            "placeholder": "Example: On Saturdays I visit my parents and cook."
+        },
+        "language_focus": [
+            {
+                "title": "Free-time vocabulary",
+                "items": [
+                    "go hiking · watch series · play football · read · take photos · travel",
+                    "relax at home · visit family · practice yoga · go to the cinema"
+                ]
+            },
+            {
+                "title": "Questions & answers",
+                "items": [
+                    "Do you play any sports? – Yes, I do / No, I don’t.",
+                    "What do you like doing on Sundays?",
+                    "How often do you go out with friends?"
+                ]
+            }
+        ],
+        "practice_prompts": [
+            "Write 2 sentences with 'I like / I love / I don’t like'.",
+            "Describe a free-time activity in detail.",
+            "Write one question to invite someone to do something."
+        ],
+        "multiple_choice": [
+            {
+                "question": "Choose the correct short answer: 'Do you watch movies on Fridays?'",
+                "options": ["Yes, I am.", "Yes, I do.", "Yes, I watch."],
+                "answer": "Yes, I do."
+            },
+            {
+                "question": "Which sentence is correct?",
+                "options": [
+                    "I enjoy to cook.",
+                    "I enjoy cooking.",
+                    "I enjoy cook."
+                ],
+                "answer": "I enjoy cooking."
+            }
+        ],
+        "listening": {
+            "title": "Listening – Free-time survey",
+            "description": "Introduce the survey with the following audios (intro + interviews + Q&A).",
+            "audio_sections": [
+                {"title": "Audio 1 – Intro", "file": "U2_S2_audio1_intro.mp3"},
+                {"title": "Audio 2 – Three people talk about hobbies", "file": "U2_S2_audio2_three_people.mp3"},
+                {"title": "Audio 3 – Questions & answers", "file": "U2_S2_audio3_questions_answers.mp3"},
+            ],
+            "script_key": "u2_c2_freetime_script",
+            "questions": [
+                {
+                    "question": "What activity is the most popular?",
+                    "options": ["Watching TV", "Going to the gym", "Cooking"],
+                    "answer": "Watching TV"
+                },
+                {
+                    "question": "How often does Luis play football?",
+                    "options": ["Every day", "Twice a week", "Only on holidays"],
+                    "answer": "Twice a week"
+                }
+            ],
+            "writing_prompt": "Create a short summary of the survey results."
+        },
+        "speaking": {
+            "prompts": [
+                "Plan a weekend with a partner (choose two activities).",
+                "Describe a memorable free-time experience.",
+                "Interview three classmates: What do you do after work?"
+            ],
+            "reflection": [
+                "I can now keep a conversation about hobbies.",
+                "New verbs I can use are...",
+                "Next week I will practice by..."
+            ]
+        },
+        "answer_boxes": [
+            {
+                "session": "S2",
+                "hour": "H1",
+                "exercise_id": "free_time_email",
+                "label": "Write an email about your free time"
+            },
+            {
+                "session": "S2",
+                "hour": "H2",
+                "exercise_id": "listening_summary",
+                "label": "Listening summary – Free-time survey"
+            }
+        ]
+    },
+    (2, "Class 3 – Habits & lifestyle"): {
+        "unit_number": 2,
+        "class_number": 3,
+        "class_title": "Class 3 – Habits & lifestyle",
+        "key_prefix": "u2c3",
+        "learning_goals": [
+            "Review frequency expressions and connectors (and, but, because).",
+            "Compare routines with another person.",
+            "Write a short paragraph about lifestyle habits."
+        ],
+        "warmup": {
+            "title": "Warm-up – Healthy or unhealthy?",
+            "intro": "Think about your lifestyle choices.",
+            "questions": [
+                "Which healthy habit do you have?",
+                "Which habit would you like to change?",
+                "How do you relax during the week?"
+            ],
+            "placeholder": "Example: I drink water all day, but I go to bed late."
+        },
+        "language_focus": [
+            {
+                "title": "Frequency expressions",
+                "items": [
+                    "once/twice a week · every day · on weekdays · at weekends",
+                    "always · usually · sometimes · rarely · never"
+                ]
+            },
+            {
+                "title": "Connectors",
+                "items": [
+                    "I usually cook at home **because** I like healthy food.",
+                    "I go to the gym, **but** I don’t run outside.",
+                    "I drink coffee **and** tea every morning."
+                ]
+            }
+        ],
+        "practice_prompts": [
+            "Write 3 sentences using connectors (and/but/because).",
+            "Describe one healthy habit you have.",
+            "Compare your routine with another person (We both..., but I...)."
+        ],
+        "multiple_choice": [
+            {
+                "question": "Choose the sentence with a connector.",
+                "options": [
+                    "I go to the park.",
+                    "I go to the park because I like fresh air.",
+                    "I to the park go."
+                ],
+                "answer": "I go to the park because I like fresh air."
+            },
+            {
+                "question": "Complete: I ___ eat fast food because I prefer cooking.",
+                "options": ["rarely", "rare", "rarely do"],
+                "answer": "rarely"
+            }
+        ],
+        "listening": {
+            "title": "Listening – Lifestyle podcast",
+            "description": "Listen to two friends talking about healthy habits (general story + detail follow-up).",
+            "audio_sections": [
+                {"title": "Audio 1 – Two lifestyles", "file": "U2_S3_audio1_two_lifestyles.mp3"},
+                {"title": "Audio 2 – Details", "file": "U2_S3_audio2_details.mp3"},
+            ],
+            "script_key": "u2_c3_lifestyle_script",
+            "questions": [
+                {
+                    "question": "How often does Leo meditate?",
+                    "options": ["Every morning", "Once a week", "Never"],
+                    "answer": "Every morning"
+                },
+                {
+                    "question": "Why does Sofia cook at home?",
+                    "options": [
+                        "Because it is cheaper",
+                        "Because she hates restaurants",
+                        "Because she doesn’t have time"
+                    ],
+                    "answer": "Because it is cheaper"
+                }
+            ],
+            "writing_prompt": "Write tips for a balanced lifestyle."
+        },
+        "speaking": {
+            "prompts": [
+                "Debate: Which habit is more important – sleep or exercise?",
+                "Give advice to a classmate about stress.",
+                "Create a two-person dialogue comparing routines."
+            ],
+            "reflection": [
+                "I can connect ideas using and / but / because.",
+                "I can describe lifestyle habits confidently.",
+                "Next week I will..."
+            ]
+        },
+        "answer_boxes": [
+            {
+                "session": "S3",
+                "hour": "H1",
+                "exercise_id": "habit_paragraph",
+                "label": "Write about your lifestyle habits"
+            },
+            {
+                "session": "S3",
+                "hour": "H2",
+                "exercise_id": "reflection_notes",
+                "label": "Reflection – What habit will you change?"
+            }
+        ]
+    }
+}
+
+
+def render_interactive_class(config):
+    unit_number = config["unit_number"]
+    class_number = config["class_number"]
+    unit_name = UNITS[unit_number - 1]["name"]
+    prefix = config["key_prefix"]
+
+    st.markdown("---")
+    st.markdown(f"### 📱 Unit {unit_number} – {unit_name} · {config['class_title']}")
+    with st.expander("🎯 Learning goals for this class"):
+        for goal in config.get("learning_goals", []):
+            st.markdown(f"- {goal}")
+
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(
+        ["Warm-up", "Language", "Practice", "Listening", "Speaking & Wrap-up"]
+    )
+
+    warmup = config.get("warmup", {})
+    with tab1:
+        st.subheader(warmup.get("title", "Warm-up"))
+        if warmup.get("intro"):
+            st.markdown(warmup["intro"])
+        for question in warmup.get("questions", []):
+            st.markdown(f"- {question}")
+        st.text_area(
+            "Write your ideas here:",
+            key=f"{prefix}_warmup_text",
+            placeholder=warmup.get("placeholder", ""),
+        )
+        choices = warmup.get("choices")
+        if choices:
+            st.multiselect(
+                warmup.get("choices_label", "Select the options that apply:"),
+                choices,
+                key=f"{prefix}_warmup_choices"
+            )
+            if warmup.get("choices_prompt"):
+                st.info(warmup["choices_prompt"])
+
+    with tab2:
+        st.subheader("Key language")
+        for block in config.get("language_focus", []):
+            st.markdown(f"### {block.get('title', 'Language focus')}")
+            for item in block.get("items", []):
+                st.markdown(f"- {item}")
+
+    with tab3:
+        st.subheader("Practice")
+        for idx, prompt in enumerate(config.get("practice_prompts", []), start=1):
+            st.text_input(
+                f"{idx}) {prompt}",
+                key=f"{prefix}_practice_{idx}"
+            )
+
+        mc_questions = config.get("multiple_choice", [])
+        if mc_questions:
+            st.markdown("---")
+            st.markdown("### Multiple choice")
+            answers_store = []
+            for idx, mc in enumerate(mc_questions, start=1):
+                response = st.radio(
+                    mc["question"],
+                    mc["options"],
+                    key=f"{prefix}_mc_{idx}"
+                )
+                answers_store.append((mc["question"], mc["answer"]))
+
+            if st.button("Check answers – Practice", key=f"{prefix}_mc_check"):
+                feedback = "\n".join([f"- {q} → **{ans}**" for q, ans in answers_store])
+                st.info(f"Suggested answers:\n{feedback}")
+
+        if config.get("answer_boxes"):
+            st.markdown("---")
+            st.markdown("### Save your work")
+            for box in config["answer_boxes"]:
+                unit2_answer_box(
+                    session=box["session"],
+                    hour=box["hour"],
+                    exercise_id=box["exercise_id"],
+                    label=box["label"],
+                )
+
+    with tab4:
+        listening = config.get("listening")
+        if listening:
+            st.subheader(listening.get("title", "Listening"))
+            if listening.get("description"):
+                st.markdown(listening["description"])
+
+            audio_sections = listening.get("audio_sections")
+            if audio_sections:
+                for section in audio_sections:
+                    title = section.get("title")
+                    file_name = section.get("file")
+                    description = section.get("description")
+                    if file_name:
+                        render_audio_card(title or "Audio", file_name, description)
+                    else:
+                        st.warning("Audio file not specified.")
+            else:
+                audio_file = listening.get("audio")
+                if audio_file:
+                    render_audio_card(listening.get("title", "Audio"), audio_file)
+                else:
+                    st.info("Add your audio file in the Content Admin panel.")
+
+            script_key = listening.get("script_key")
+            if script_key:
+                script = load_content_block(unit_number, class_number, script_key)
+                with st.expander("Teacher script (from Content Admin)"):
+                    if script:
+                        st.text(script)
+                    else:
+                        st.info(
+                            "No script saved yet. Add it in Content Admin "
+                            f"(Unit {unit_number}, Class {class_number}, key `{script_key}`)"
+                        )
+
+            listening_questions = listening.get("questions", [])
+            answers_feedback = []
+            for idx, q in enumerate(listening_questions, start=1):
+                st.radio(
+                    f"{idx}) {q['question']}",
+                    q["options"],
+                    key=f"{prefix}_listening_{idx}"
+                )
+                answers_feedback.append((q["question"], q["answer"]))
+
+            if listening_questions and st.button("Check answers – Listening", key=f"{prefix}_listening_check"):
+                summary = "\n".join([f"- {q} → **{ans}**" for q, ans in answers_feedback])
+                st.info(f"Suggested key:\n{summary}")
+
+            if listening.get("writing_prompt"):
+                st.markdown("---")
+                st.markdown("### Listening follow-up")
+                st.text_area(
+                    listening["writing_prompt"],
+                    key=f"{prefix}_listening_followup"
+                )
+        else:
+            st.info("This class does not have a specific listening activity yet.")
+
+    with tab5:
+        speaking = config.get("speaking", {})
+        st.subheader(speaking.get("title", "Speaking & Wrap-up"))
+        st.markdown("### Speaking prompts")
+        for prompt in speaking.get("prompts", []):
+            st.markdown(f"- {prompt}")
+
+        reflection = speaking.get("reflection", [])
+        if reflection:
+            st.markdown("### Reflection")
+            for item in reflection:
+                st.markdown(f"- {item}")
+        st.text_area(
+            "Write your reflection here:",
+            key=f"{prefix}_reflection"
+        )
 # ==========================
 # PAGES
 # ==========================
@@ -2019,6 +2926,15 @@ def lessons_page():
     show_logo()
     st.title("📖 Enter your class")
 
+    if st.session_state.get("registration_success"):
+        message = st.session_state.get(
+            "registration_message",
+            "Registration successful! Welcome to your first class."
+        )
+        st.success(message)
+        st.session_state.pop("registration_success", None)
+        st.session_state.pop("registration_message", None)
+
     unit_options = [f"Unit {u['number']} – {u['name']}" for u in UNITS]
     unit_choice = st.selectbox("Choose your unit", unit_options)
     unit_index = unit_options.index(unit_choice)
@@ -2056,51 +2972,9 @@ def lessons_page():
             st.markdown(f"- {item}")
         st.success("Use this space to add your own notes, examples or anecdotes for each group.")
 
-    # --- UNIT 2 special interactive blocks with saving answers ---
-    if unit_number == 2 and "Class 1" in lesson_choice:
-        st.markdown("---")
-        st.markdown("### 🎧 Unit 2 – Session 1 · Mobile class")
-
-        hour = st.radio(
-            "Choose part:",
-            ["1st Hour – Grammar & Writing", "2nd Hour – Listening & Speaking"],
-            horizontal=True
-        )
-
-        if hour.startswith("1st"):
-            render_unit2_session1_hour1()
-        else:
-            render_unit2_session1_hour2()
-
-    elif unit_number == 2 and "Class 2" in lesson_choice:
-        st.markdown("---")
-        st.markdown("### 🎧 Unit 2 – Session 2 · Mobile class")
-
-        hour = st.radio(
-            "Choose part:",
-            ["1st Hour – Grammar & Writing", "2nd Hour – Listening & Speaking"],
-            horizontal=True
-        )
-
-        if hour.startswith("1st"):
-            render_unit2_session2_hour1()
-        else:
-            render_unit2_session2_hour2()
-
-    elif unit_number == 2 and "Class 3" in lesson_choice:
-        st.markdown("---")
-        st.markdown("### 🎧 Unit 2 – Session 3 · Mobile class")
-
-        hour = st.radio(
-            "Choose part:",
-            ["1st Hour – Grammar & Writing", "2nd Hour – Listening & Speaking"],
-            horizontal=True
-        )
-
-        if hour.startswith("1st"):
-            render_unit2_session3_hour1()
-        else:
-            render_unit2_session3_hour2()
+    interactive_config = INTERACTIVE_CLASS_CONTENT.get((unit_number, lesson_choice))
+    if interactive_config:
+        render_interactive_class(interactive_config)
 
     # --- UNIT 3 – Class 1 special mobile class ---
     if unit_number == 3 and lesson_choice == "Class 1 – Food vocabulary":
@@ -2160,70 +3034,56 @@ def access_page():
     show_logo()
     st.title("🔐 Access")
 
-    tabs = st.tabs(["Student access", "Admin access"])
+    st.subheader("Register to start learning")
+    st.write(
+        "Fill in this quick form to activate your access. Once you finish, we will "
+        "show you a success message and take you automatically to your first class."
+    )
+    st.info("Tus datos se guardan solo en este dispositivo. Puedes actualizar tu nombre o meta cuando entres de nuevo.")
 
-    # Student
-    with tabs[0]:
-        st.subheader("Student – Login or register")
+    col1, col2 = st.columns(2)
+    with col1:
+        name = st.text_input("Full name", key="reg_name")
+        email = st.text_input("Email", key="reg_email")
+    with col2:
+        goal = st.text_area("Why are you studying English? (optional)", key="reg_goal", height=100)
 
-        mode = st.radio("Choose an option", ["Login", "Register"], horizontal=True)
-
-        if mode == "Login":
-            email = st.text_input("Email", key="login_email")
-            name = st.text_input("Your name (optional)", key="login_name")
-            if st.button("Login", key="login_btn"):
-                if email:
-                    st.session_state["auth"]["logged_in"] = True
-                    st.session_state["auth"]["role"] = "student"
-                    st.session_state["auth"]["email"] = email
-                    st.session_state["auth"]["name"] = name or email
-                    st.success(f"Welcome, {st.session_state['auth']['name']}!")
-                else:
-                    st.error("Please write your email.")
+    if st.button("Create account & go to your first class", key="reg_btn", use_container_width=True):
+        if name and email:
+            st.session_state["auth"]["logged_in"] = True
+            st.session_state["auth"]["role"] = "student"
+            st.session_state["auth"]["email"] = email
+            st.session_state["auth"]["name"] = name
+            st.session_state["registration_success"] = True
+            st.session_state["registration_message"] = f"Welcome, {name}! Registration successful."
+            go_to_page("Enter your class")
         else:
-            name = st.text_input("Full name", key="reg_name")
-            email = st.text_input("Email", key="reg_email")
-            goal = st.text_area("Why are you studying English? (optional)", key="reg_goal")
-            if st.button("Create account & login", key="reg_btn"):
-                if name and email:
-                    st.session_state["auth"]["logged_in"] = True
-                    st.session_state["auth"]["role"] = "student"
-                    st.session_state["auth"]["email"] = email
-                    st.session_state["auth"]["name"] = name
-                    st.success(f"Welcome, {name}! Your account is active in this device.")
-                else:
-                    st.error("Please write at least your name and email.")
+            st.error("Please write at least your name and email.")
 
-        if st.session_state["auth"]["logged_in"]:
-            st.info(
-                f"Current user: **{st.session_state['auth']['name']}** "
-                f"({st.session_state['auth']['email']})"
-            )
-            if st.button("Logout", key="logout_btn"):
-                st.session_state["auth"] = {
-                    "logged_in": False,
-                    "role": "guest",
-                    "name": "",
-                    "email": "",
-                }
-                st.success("Logged out.")
+    if st.session_state["auth"]["logged_in"]:
+        st.info(
+            f"Current user: **{st.session_state['auth']['name']}** "
+            f"({st.session_state['auth']['email']})"
+        )
+        if st.button("Logout", key="logout_btn"):
+            logout_user()
+            st.success("Logged out.")
 
-    # Admin (opcional, lo dejamos también aquí)
-    with tabs[1]:
-        st.subheader("Admin access")
-        st.write("Only for teacher / administrator.")
+    st.markdown("---")
+    st.subheader("Admin access (teacher only)")
+    st.write("Only for teacher / administrator.")
 
-        code = st.text_input("Admin access code", type="password", key="admin_code_access")
-        if st.button("Enter as admin", key="admin_btn_access"):
-            if code == ADMIN_ACCESS_CODE:
-                st.session_state["auth"]["logged_in"] = True
-                st.session_state["auth"]["role"] = "admin"
-                st.session_state["auth"]["name"] = "Admin"
-                st.session_state["auth"]["email"] = "admin@local"
-                st.success("✅ Admin access granted.")
-                st.experimental_rerun()
-            else:
-                st.error("Invalid code")
+    code = st.text_input("Admin access code", type="password", key="admin_code_access")
+    if st.button("Enter as admin", key="admin_btn_access"):
+        if code == ADMIN_ACCESS_CODE:
+            st.session_state["auth"]["logged_in"] = True
+            st.session_state["auth"]["role"] = "admin"
+            st.session_state["auth"]["name"] = "Admin"
+            st.session_state["auth"]["email"] = "admin@local"
+            st.success("✅ Admin access granted.")
+            st.rerun()
+        else:
+            st.error("Invalid code")
 
 
 def teacher_panel_page():
@@ -2245,7 +3105,7 @@ def teacher_panel_page():
                 st.session_state["auth"]["name"] = "Admin"
                 st.session_state["auth"]["email"] = "admin@local"
                 st.success("✅ Admin access granted.")
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("Invalid code")
         return  # No seguimos dibujando el panel si aún no es admin
@@ -2256,6 +3116,12 @@ def teacher_panel_page():
     st.markdown(
         "Here you can review the answers that students saved for **Unit 2**.\n\n"
         "Data is stored in `responses/unit2_responses.csv` on the server."
+    )
+    st.markdown(
+        "<div class='info-card'>Consejo: Usa los filtros de la barra lateral para enfocarte en "
+        "una sesión o estudiante. Los datos nuevos aparecen automáticamente cuando los "
+        "estudiantes guardan sus respuestas.</div>",
+        unsafe_allow_html=True,
     )
 
     if not RESPONSES_FILE.exists():
@@ -2272,23 +3138,44 @@ def teacher_panel_page():
 
         df["response"] = df["response"].fillna("").astype(str).str.replace("\\n", "\n")
 
-        st.markdown("### Filters")
-        sessions = sorted(df["session"].unique())
-        session_choice = st.selectbox("Session", sessions)
+        total_answers = len(df)
+        total_students = df["user_email"].nunique()
+        st.markdown("### Overview")
+        col_a, col_b = st.columns(2)
+        col_a.metric("Total saved answers", total_answers)
+        col_b.metric("Unique students", total_students)
 
-        filtered = df[df["session"] == session_choice]
+        with st.sidebar:
+            st.header("🎯 Teacher filters")
+            st.caption("Selecciona la sesión y los estudiantes que quieres revisar.")
+            sessions = sorted(df["session"].unique())
+            session_options = ["All sessions"] + sessions
+            session_choice = st.selectbox("Session", session_options, index=0)
 
-        emails = sorted(filtered["user_email"].unique())
-        email_filter = st.multiselect("Filter by student (optional)", emails)
+            filtered = df.copy()
+            if session_choice != "All sessions":
+                filtered = filtered[filtered["session"] == session_choice]
+
+            emails = sorted(filtered["user_email"].unique())
+            email_filter = st.multiselect("Filter by student (optional)", emails)
 
         if email_filter:
             filtered = filtered[filtered["user_email"].isin(email_filter)]
 
-        st.markdown("### Answers")
-        st.dataframe(
-            filtered.sort_values("timestamp", ascending=False),
-            use_container_width=True,
-        )
+        st.markdown("### Answers table")
+        if filtered.empty:
+            st.info("No answers match the selected filters.")
+        else:
+            st.dataframe(
+                filtered.sort_values("timestamp", ascending=False),
+                use_container_width=True,
+            )
+
+            st.markdown("### Individual responses")
+            for _, row in filtered.sort_values("timestamp", ascending=False).iterrows():
+                header = f"{row.get('timestamp','')} – {row.get('user_name','(no name)')} ({row.get('session','')}/{row.get('hour','')}, {row.get('exercise_id','')})"
+                with st.expander(header):
+                    st.write(row["response"] or "_(empty response)_")
     except Exception as e:
         st.error(f"Error loading answers: {e}")
 
@@ -2298,6 +3185,7 @@ def teacher_panel_page():
 # ==========================
 
 def render_page(page_id: str):
+    render_user_status_bar()
     if page_id == "Overview":
         overview_page()
     elif page_id == "English Levels":
@@ -2321,91 +3209,127 @@ def content_admin_page():
     show_logo()
     st.title("⚙️ Content Admin – Dynamic updates")
 
-    # Debug opcional
-    with st.expander("Session debug (solo para ti)"):
-        st.json(st.session_state.get("auth", {}))
-
-    # Estado actual de sesión
+    # Estado de autenticación actual
     name, email, role = get_current_user()
 
-    # Si NO es admin, pedimos el código AQUÍ MISMO
+    # Si NO eres admin, pedimos el código aquí mismo
     if role != "admin":
         st.error("This area is only for admin.")
 
-        code = st.text_input("Admin access code", type="password", key="admin_code_content_page")
-        if st.button("Enter as admin", key="admin_btn_content_page"):
+        code = st.text_input(
+            "Admin access code",
+            type="password",
+            key="content_admin_code",
+        )
+        if st.button("Enter as admin here", key="content_admin_btn"):
             if code == ADMIN_ACCESS_CODE:
+                # Actualizamos la sesión global de auth
                 st.session_state["auth"]["logged_in"] = True
                 st.session_state["auth"]["role"] = "admin"
                 st.session_state["auth"]["name"] = "Admin"
                 st.session_state["auth"]["email"] = "admin@local"
                 st.success("✅ Admin access granted.")
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("Invalid code")
-        return  # No seguimos si sigue sin ser admin
+        return  # No seguimos mostrando el panel si no es admin
 
-    # Si llegamos aquí, YA somos admin
-    st.success(f"You are logged in as admin (**{name or 'Admin'}**). You can edit dynamic content.")
+    # Si llegamos aquí, ya eres admin
+    st.success(
+        f"You are logged in as admin (**{name or 'Admin'}**). "
+        "Use this panel to manage dynamic content."
+    )
 
     st.markdown(
         """
-Use this panel to **paste scripts or content** and save them as dynamic blocks.
+Use this panel to **paste class content and dialogues**.  
+The app will read them automatically from disk.
 
-They are stored in:
+They are stored as text files in:
+
 `content/unit<unit>/class<class>/<content_key>.txt`
 
-Later you can load them from your code for:
-- Audio scripts (ElevenLabs)
-- Listening texts
-- Dialogues
-- Extra class content
+You can use this for:
+
+- ElevenLabs scripts  
+- Listening / dialogue texts  
+- Extra class content (instructions, quizzes, etc.)
         """
     )
 
-    st.markdown("### 1. Select where to save")
+    st.markdown("### 1. Select where to save / load")
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
-        unit = st.number_input("Unit number", min_value=1, max_value=10, value=3, step=1)
+        unit = st.number_input(
+            "Unit number",
+            min_value=1,
+            max_value=10,
+            value=3,
+            step=1,
+            key="content_unit",
+        )
     with col2:
-        lesson = st.number_input("Class number", min_value=1, max_value=3, value=1, step=1)
+        lesson = st.number_input(
+            "Class number",
+            min_value=1,
+            max_value=3,
+            value=1,
+            step=1,
+            key="content_lesson",
+        )
+    with col3:
+        content_type = st.selectbox(
+            "Content type",
+            [
+                "elevenlabs_script",
+                "listening_dialogue",
+                "class_notes",
+                "extra_text",
+            ],
+            index=0,
+            help=(
+                "This is only a label to help you organize. "
+                "You can create more keys later if needed."
+            ),
+            key="content_type",
+        )
 
+    # El key real del archivo (sin extensión)
     content_key = st.text_input(
-        "Content key (example: audio_intro, dialog1, script_food_vocab)",
-        value="audio_intro",
-        help="This will be used as the filename, e.g. audio_intro.txt"
+        "Content key (filename, without .txt)",
+        value=content_type,
+        key="content_key",
+        help="Example: 'u3_c1_supermarket_dialogue' or 'u3_c1_audio_intro'",
     )
 
-    st.markdown("### 2. Content")
+    st.markdown("### 2. Content editor")
 
-    if st.button("🔄 Load existing content (if any)", key="load_content_btn"):
-        try:
-            existing = load_content_block(int(unit), int(lesson), content_key)
-            if existing:
-                st.session_state["content_admin_text"] = existing
-                st.success("Existing content loaded into the text area below.")
-            else:
-                st.info("No existing content found for this Unit/Class/Key.")
-        except Exception as e:
-            st.error(f"Error loading content: {e}")
+    # Botón para cargar (si existe)
+    if st.button("🔄 Load existing content (if any)", key="load_dyn_content"):
+        existing = load_content_block(int(unit), int(lesson), content_key)
+        if existing is not None:
+            st.session_state["content_admin_text"] = existing
+            st.success("Existing content loaded into the editor.")
+        else:
+            st.info("No file found for this Unit/Class/Key yet.")
 
-    content_area = st.text_area(
+    content_text = st.text_area(
         "Paste or write your content here:",
         value=st.session_state.get("content_admin_text", ""),
-        height=400,
+        height=420,
         key="content_admin_text",
     )
 
     st.markdown("### 3. Save / update")
 
-    if st.button("💾 Save / update content", key="save_content_btn"):
-        try:
-            path = save_content_block(int(unit), int(lesson), content_key, content_area)
-            st.success(f"Content saved successfully in: `{path}`")
-        except Exception as e:
-            st.error(f"Error saving content: {e}")
+    if st.button("💾 Save / update content", key="save_dyn_content"):
+        path = save_content_block(int(unit), int(lesson), content_key, content_text)
+        st.success(f"Content saved successfully in: `{path}`")
 
+    st.markdown("---")
+    st.markdown("### Quick debug (current auth)")
+    st.json(st.session_state.get("auth", {}))
 
 # ==========================
 # MAIN
