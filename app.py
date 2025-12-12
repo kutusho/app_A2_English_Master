@@ -2305,7 +2305,16 @@ def content_admin_page():
     show_logo()
     st.title("⚙️ Content Admin – Dynamic updates")
 
-    name, email, role = get_current_user()
+    # Leer auth directo de session_state
+    auth = st.session_state.get("auth", {})
+    name = auth.get("name", "")
+    email = auth.get("email", "")
+    role = auth.get("role", "guest")
+
+    # (Opcional) Pequeño debug para ti
+    with st.expander("Session debug (solo para ti)", expanded=False):
+        st.write("auth:", auth)
+
     if role != "admin":
         st.error(
             "This area is only for admin. Please go to **Access → Admin** and enter your code."
