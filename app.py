@@ -6,6 +6,7 @@ import streamlit.components.v1 as components  # Para embeber las presentaciones 
 import datetime as dt
 import csv
 import textwrap
+import requests  # <-- NEW: para llamar a la API de ElevenLabs
 
 # ==========================
 # BASIC CONFIG
@@ -23,6 +24,9 @@ STATIC_DIR = BASE_DIR / "static"  # aquí irán las presentaciones HTML
 RESPONSES_DIR = BASE_DIR / "responses"
 RESPONSES_DIR.mkdir(exist_ok=True)
 RESPONSES_FILE = RESPONSES_DIR / "unit2_responses.csv"
+
+# ElevenLabs API key desde secrets
+ELEVEN_API_KEY = st.secrets.get("ELEVEN_API_KEY", None)
 
 # ==========================
 # ADMIN / AUTH CONFIG
@@ -115,6 +119,52 @@ def unit2_answer_box(session, hour, exercise_id, label, height=180):
             st.success("✅ Answer saved correctly.")
         else:
             st.error(msg)
+
+
+# ==========================
+# ElevenLabs helper
+# ==========================
+
+def generate_audio_elevenlabs(text: str, voice_id: str, filename: str):
+    """
+    Genera audio con ElevenLabs (una voz) y lo guarda en AUDIO_DIR/filename.
+    Retorna la ruta completa del archivo o None si falla.
+    """
+    if not ELEVEN_API_KEY:
+        st.error("ELEVEN_API_KEY no está configurado en .streamlit/secrets.toml o en Streamlit Cloud.")
+        return None
+
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+
+    headers = {
+        "xi-api-key": ELEVEN_API_KEY,
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model_id": "eleven_turbo_v2",
+        "text": text,
+        "voice_settings": {
+            "stability": 0.4,
+            "similarity_boost": 0.8
+        }
+    }
+
+    try:
+        resp = requests.post(url, json=payload, headers=headers)
+        if resp.status_code != 200:
+            st.error(f"Error ElevenLabs: {resp.status_code} – {resp.text}")
+            return None
+
+        AUDIO_DIR.mkdir(exist_ok=True)
+        audio_path = AUDIO_DIR / filename
+        with open(audio_path, "wb") as f:
+            f.write(resp.content)
+
+        return audio_path
+    except Exception as e:
+        st.error(f"Error llamando a ElevenLabs: {e}")
+        return None
 
 
 # ==========================
@@ -967,7 +1017,6 @@ def go_to_page(page_id: str):
 
 
 def render_floating_menu(current_page_id: str):
-    # Construcción de items usando <form method="get"> (sin JS, sin <a>)
     items_html = ""
     for page in PAGES:
         page_id = page["id"]
@@ -1429,10 +1478,6 @@ def render_unit2_session3_hour2():
         '"You should drink more water." / "You shouldn’t work so late at night."'
     )
 
-    st.markdown("---")
-    unit2_answer_box("S3", "H2", "listening", "Listening answers / notes")
-    unit2_answer_box("S3", "H2", "advice", "Advice for a healthier lifestyle")
-
 
 # ==========================
 # UNIT 3 – FOOD
@@ -1442,9 +1487,9 @@ def render_unit2_session3_hour2():
 def unit3_class1_food_vocabulary():
     """
     A2 – Unit 3: Food · Class 1 – Food vocabulary
-    Suggested audio files:
-      - AUDIO_DIR / "U3_C1_audio1_food_words.mp3"        # vocab + pronunciation
-      - AUDIO_DIR / "U3_C1_audio2_at_the_supermarket.mp3"  # short dialogue
+    Audio files expected:
+      - audio/U3_C1_audio1_food_words.mp3
+      - audio/U3_C1_audio2_at_the_supermarket.mp3
     """
 
     st.title("Unit 3 – Food")
@@ -1489,7 +1534,7 @@ Write short sentences:
             """
         )
 
-        st.text_area(
+        warmup_text = st.text_area(
             "Write your answers here:",
             placeholder="Example: For breakfast I usually eat eggs and tortillas. For lunch I eat chicken and rice..."
         )
@@ -1617,8 +1662,8 @@ First, listen to the pronunciation and repeat out loud.
             """
         )
 
-        audio1_path = AUDIO_DIR / "U3_C1_audio1_food_words.mp3"
-        st.audio(str(audio1_path))
+        # Usa helper que evita errores si el archivo no existe
+        _audio_or_warning("U3_C1_audio1_food_words.mp3")
 
         st.markdown(
             """
@@ -1650,11 +1695,11 @@ Focus on **word stress**:
 
         st.markdown("### 4.1 Complete the sentences")
 
-        st.text_input("1) I like ______ (fruit).")
-        st.text_input("2) I don’t like ______ (vegetable).")
-        st.text_input("3) I usually drink ______ for breakfast.")
-        st.text_input("4) For lunch I eat ______ and ______.")
-        st.text_input("5) My favourite drink is ______.")
+        p1 = st.text_input("1) I like ______ (fruit).")
+        p2 = st.text_input("2) I don’t like ______ (vegetable).")
+        p3 = st.text_input("3) I usually drink ______ for breakfast.")
+        p4 = st.text_input("4) For lunch I eat ______ and ______.")
+        p5 = st.text_input("5) My favourite drink is ______.")
 
         if st.button("Show sample answers – Practice"):
             st.markdown(
@@ -1703,12 +1748,11 @@ Then answer the questions.
             """
         )
 
-        audio2_path = AUDIO_DIR / "U3_C1_audio2_at_the_supermarket.mp3"
-        st.audio(str(audio2_path))
+        _audio_or_warning("U3_C1_audio2_at_the_supermarket.mp3")
 
         st.markdown("### 5.2 Comprehension questions")
 
-        st.radio(
+        l1 = st.radio(
             "1) What does the woman want?",
             [
                 "Some apples and bananas",
@@ -1717,7 +1761,7 @@ Then answer the questions.
             ]
         )
 
-        st.radio(
+        l2 = st.radio(
             "2) What drink do they buy?",
             [
                 "Water",
@@ -1736,7 +1780,7 @@ Then answer the questions.
         st.markdown("---")
         st.markdown("### 5.3 Write 2–3 sentences about your shopping list")
 
-        st.text_area(
+        shopping_text = st.text_area(
             "Example: Today I want to buy rice, tomatoes, chicken and water.",
             key="u3c1_shopping_list"
         )
@@ -1766,12 +1810,52 @@ Complete:
             """
         )
 
-        st.text_area(
+        reflection = st.text_area(
             "Write your reflection here:",
             key="u3c1_reflection"
         )
 
         st.success("Great job! 🥗 Keep using this food vocabulary in real life.")
+
+    # --------------------------
+    # Admin tools – ElevenLabs
+    # --------------------------
+    name, email, role = get_current_user()
+    if role == "admin":
+        st.markdown("---")
+        st.markdown("### 👨‍🏫 Admin tools – Generate ElevenLabs audios for this class")
+
+        with st.expander("Generate / regenerate Audio 1 – Food words"):
+            script1 = st.text_area(
+                "Script for Audio 1 (Food words) – paste or edit your ElevenLabs script here:",
+                height=220,
+                key="u3_c1_script1"
+            )
+            if st.button("Generate Audio 1 with ElevenLabs", key="btn_u3_c1_audio1"):
+                path = generate_audio_elevenlabs(
+                    text=script1,
+                    voice_id="RILOU7YmBhvwJGDGjNmP",  # tu voz de teacher
+                    filename="U3_C1_audio1_food_words.mp3"
+                )
+                if path:
+                    st.success(f"Audio 1 generated and saved at: {path}")
+                    st.audio(str(path))
+
+        with st.expander("Generate / regenerate Audio 2 – At the supermarket"):
+            script2 = st.text_area(
+                "Script for Audio 2 (At the supermarket) – paste or edit your ElevenLabs script here:",
+                height=260,
+                key="u3_c1_script2"
+            )
+            if st.button("Generate Audio 2 with ElevenLabs", key="btn_u3_c1_audio2"):
+                path = generate_audio_elevenlabs(
+                    text=script2,
+                    voice_id="RILOU7YmBhvwJGDGjNmP",  # puedes cambiar la voz si quieres
+                    filename="U3_C1_audio2_at_the_supermarket.mp3"
+                )
+                if path:
+                    st.success(f"Audio 2 generated and saved at: {path}")
+                    st.audio(str(path))
 
 
 # ==========================
@@ -1885,7 +1969,8 @@ def lessons_page():
 
     unit_options = [f"Unit {u['number']} – {u['name']}" for u in UNITS]
     unit_choice = st.selectbox("Choose your unit", unit_options)
-    unit_number = UNITS[unit_options.index(unit_choice)]["number"]
+    unit_index = unit_options.index(unit_choice)
+    unit_number = UNITS[unit_index]["number"]
 
     lessons = LESSONS.get(unit_number, [])
     if not lessons:
@@ -1965,10 +2050,10 @@ def lessons_page():
         else:
             render_unit2_session3_hour2()
 
-    # --- UNIT 3 special interactive class 1 ---
-    elif unit_number == 3 and "Class 1" in lesson_choice:
+    # --- UNIT 3 – Class 1 special mobile class ---
+    if unit_number == 3 and lesson_choice == "Class 1 – Food vocabulary":
         st.markdown("---")
-        st.markdown("### 🎧 Unit 3 – Session 1 · Mobile class")
+        st.markdown("### 📱 Unit 3 – Session 1 · Mobile class")
         unit3_class1_food_vocabulary()
 
 
@@ -2046,7 +2131,7 @@ def access_page():
         else:
             name = st.text_input("Full name", key="reg_name")
             email = st.text_input("Email", key="reg_email")
-            st.text_area("Why are you studying English? (optional)", key="reg_goal")
+            goal = st.text_area("Why are you studying English? (optional)", key="reg_goal")
             if st.button("Create account & login", key="reg_btn"):
                 if name and email:
                     st.session_state["auth"]["logged_in"] = True
