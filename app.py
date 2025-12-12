@@ -2162,7 +2162,7 @@ def access_page():
 
     tabs = st.tabs(["Student access", "Admin access"])
 
-    # ---- Student ----
+    # Student
     with tabs[0]:
         st.subheader("Student – Login or register")
 
@@ -2208,34 +2208,50 @@ def access_page():
                 }
                 st.success("Logged out.")
 
-    # ---- Admin ----
+    # Admin (opcional, lo dejamos también aquí)
     with tabs[1]:
         st.subheader("Admin access")
         st.write("Only for teacher / administrator.")
 
-        code = st.text_input("Admin access code", type="password", key="admin_code")
-        if st.button("Enter as admin", key="admin_btn"):
+        code = st.text_input("Admin access code", type="password", key="admin_code_access")
+        if st.button("Enter as admin", key="admin_btn_access"):
             if code == ADMIN_ACCESS_CODE:
                 st.session_state["auth"]["logged_in"] = True
                 st.session_state["auth"]["role"] = "admin"
                 st.session_state["auth"]["name"] = "Admin"
                 st.session_state["auth"]["email"] = "admin@local"
                 st.success("✅ Admin access granted.")
+                st.experimental_rerun()
             else:
                 st.error("Invalid code")
-
-        if st.session_state["auth"]["role"] == "admin":
-            st.success("You are logged in as admin. Go to **Teacher Panel** from the menu.")
 
 
 def teacher_panel_page():
     show_logo()
     st.title("📂 Teacher Panel – Unit 2 answers")
 
+    # Estado actual de sesión
     name, email, role = get_current_user()
+
+    # Si NO es admin, pedimos el código AQUÍ MISMO
     if role != "admin":
-        st.error("This area is only for admin. Please go to **Access → Admin** and enter your code.")
-        return
+        st.error("This area is only for admin.")
+
+        code = st.text_input("Admin access code", type="password", key="admin_code_teacher_panel")
+        if st.button("Enter as admin", key="admin_btn_teacher_panel"):
+            if code == ADMIN_ACCESS_CODE:
+                st.session_state["auth"]["logged_in"] = True
+                st.session_state["auth"]["role"] = "admin"
+                st.session_state["auth"]["name"] = "Admin"
+                st.session_state["auth"]["email"] = "admin@local"
+                st.success("✅ Admin access granted.")
+                st.experimental_rerun()
+            else:
+                st.error("Invalid code")
+        return  # No seguimos dibujando el panel si aún no es admin
+
+    # Si llegamos aquí, YA somos admin
+    st.success(f"You are logged in as admin (**{name or 'Admin'}**).")
 
     st.markdown(
         "Here you can review the answers that students saved for **Unit 2**.\n\n"
@@ -2305,21 +2321,32 @@ def content_admin_page():
     show_logo()
     st.title("⚙️ Content Admin – Dynamic updates")
 
-    # Leer auth directo de session_state
-    auth = st.session_state.get("auth", {})
-    name = auth.get("name", "")
-    email = auth.get("email", "")
-    role = auth.get("role", "guest")
+    # Debug opcional
+    with st.expander("Session debug (solo para ti)"):
+        st.json(st.session_state.get("auth", {}))
 
-    # (Opcional) Pequeño debug para ti
-    with st.expander("Session debug (solo para ti)", expanded=False):
-        st.write("auth:", auth)
+    # Estado actual de sesión
+    name, email, role = get_current_user()
 
+    # Si NO es admin, pedimos el código AQUÍ MISMO
     if role != "admin":
-        st.error(
-            "This area is only for admin. Please go to **Access → Admin** and enter your code."
-        )
-        return
+        st.error("This area is only for admin.")
+
+        code = st.text_input("Admin access code", type="password", key="admin_code_content_page")
+        if st.button("Enter as admin", key="admin_btn_content_page"):
+            if code == ADMIN_ACCESS_CODE:
+                st.session_state["auth"]["logged_in"] = True
+                st.session_state["auth"]["role"] = "admin"
+                st.session_state["auth"]["name"] = "Admin"
+                st.session_state["auth"]["email"] = "admin@local"
+                st.success("✅ Admin access granted.")
+                st.experimental_rerun()
+            else:
+                st.error("Invalid code")
+        return  # No seguimos si sigue sin ser admin
+
+    # Si llegamos aquí, YA somos admin
+    st.success(f"You are logged in as admin (**{name or 'Admin'}**). You can edit dynamic content.")
 
     st.markdown(
         """
@@ -2352,51 +2379,33 @@ Later you can load them from your code for:
 
     st.markdown("### 2. Content")
 
-    default_text = ""
-    if st.button("🔄 Load existing content (if any)"):
+    if st.button("🔄 Load existing content (if any)", key="load_content_btn"):
         try:
             existing = load_content_block(int(unit), int(lesson), content_key)
             if existing:
+                st.session_state["content_admin_text"] = existing
                 st.success("Existing content loaded into the text area below.")
-                default_text = existing
             else:
                 st.info("No existing content found for this Unit/Class/Key.")
         except Exception as e:
             st.error(f"Error loading content: {e}")
 
-    # Para evitar conflictos, usamos un key fijo y sólo ponemos default_text si viene de carga:
     content_area = st.text_area(
         "Paste or write your content here:",
-        value=default_text,
+        value=st.session_state.get("content_admin_text", ""),
         height=400,
         key="content_admin_text",
     )
 
     st.markdown("### 3. Save / update")
 
-    if st.button("💾 Save / update content"):
+    if st.button("💾 Save / update content", key="save_content_btn"):
         try:
             path = save_content_block(int(unit), int(lesson), content_key, content_area)
             st.success(f"Content saved successfully in: `{path}`")
         except Exception as e:
             st.error(f"Error saving content: {e}")
 
-    st.markdown("---")
-    st.markdown(
-        """
-**Tip:**  
-You can now start refactoring your classes so instead of hard-coding long texts,  
-you load them with `load_content_block(unit, class, key)`.
-
-Example (Python):
-
-```python
-script = load_content_block(3, 1, "audio_intro")
-st.markdown(script)
-bash
-Copiar código
-    """
-)
 
 # ==========================
 # MAIN
