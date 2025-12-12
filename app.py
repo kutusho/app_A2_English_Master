@@ -1254,36 +1254,20 @@ def content_admin_page():
     show_logo()
     st.title("⚙️ Content Admin – Dynamic updates")
 
-    auth = st.session_state.get("auth", {})
-    role = auth.get("role", "guest")
+    # Debug rápido para ver el estado real de la sesión
+    with st.expander("Session debug (solo para ti)"):
+        st.json(st.session_state.get("auth", {}))
 
-    # Mini login local si no eres admin
+    # Usamos el helper estándar
+    name, email, role = get_current_user()
+
+    # Si NO eres admin, solo avisamos y pedimos ir a Access → Admin
     if role != "admin":
-        st.error("This area is only for admin.")
-
-        st.markdown("#### Enter admin code to continue")
-        code_here = st.text_input(
-            "Admin access code",
-            type="password",
-            key="content_admin_code",
-        )
-
-        if st.button("Enter as admin here", key="content_admin_btn"):
-            if code_here == ADMIN_ACCESS_CODE:
-                st.session_state["auth"] = {
-                    "logged_in": True,
-                    "role": "admin",
-                    "name": "Admin",
-                    "email": "admin@local",
-                }
-                st.success("✅ Admin access granted. You can now use Content Admin.")
-                _rerun()
-            else:
-                st.error("Invalid admin code.")
+        st.error("This area is only for admin. Please go to **Access → Admin** and enter your code.")
         return
 
-    # Ya eres admin
-    st.success("You are logged in as admin. You can edit dynamic content.")
+    # Si llegaste aquí, ya eres admin
+    st.success(f"You are logged in as admin (**{name or 'Admin'}**). You can edit dynamic content.")
 
     st.markdown(
         """
