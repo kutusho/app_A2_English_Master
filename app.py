@@ -24,6 +24,10 @@ STATIC_DIR = BASE_DIR / "static"  # aquí irán las presentaciones HTML
 RESPONSES_DIR = BASE_DIR / "responses"
 RESPONSES_DIR.mkdir(exist_ok=True)
 RESPONSES_FILE = RESPONSES_DIR / "unit2_responses.csv"
+# Carpeta para contenido dinámico (textos, scripts, etc.)
+CONTENT_DIR = BASE_DIR / "content"
+CONTENT_DIR.mkdir(exist_ok=True)
+
 
 # ElevenLabs API key desde secrets
 ELEVEN_API_KEY = st.secrets.get("ELEVEN_API_KEY", None)
@@ -120,6 +124,52 @@ def unit2_answer_box(session, hour, exercise_id, label, height=180):
         else:
             st.error(msg)
 
+# ==========================
+# CONTENT STORAGE HELPERS
+# ==========================
+
+def save_content_block(unit: int, lesson: int, content_key: str, text: str):
+    """
+    Guarda un bloque de contenido en:
+      content/unit<unit>/class<lesson>/<content_key>.txt
+    Ejemplo:
+      content/unit3/class1/audio_intro.txt
+    """
+    if not content_key:
+        raise ValueError("content_key is required")
+
+    # Sanitizar un poco la key para evitar caracteres raros en el archivo
+    safe_key = "".join(c for c in content_key if c.isalnum() or c in ("_", "-")).strip()
+    if not safe_key:
+        raise ValueError("content_key is invalid")
+
+    folder = CONTENT_DIR / f"unit{unit}" / f"class{lesson}"
+    folder.mkdir(parents=True, exist_ok=True)
+    file_path = folder / f"{safe_key}.txt"
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(text or "")
+
+    return file_path
+
+
+def load_content_block(unit: int, lesson: int, content_key: str) -> str:
+    """
+    Carga un bloque de contenido. Si no existe, regresa cadena vacía.
+    """
+    if not content_key:
+        return ""
+
+    safe_key = "".join(c for c in content_key if c.isalnum() or c in ("_", "-")).strip()
+    if not safe_key:
+        return ""
+
+    file_path = CONTENT_DIR / f"unit{unit}" / f"class{lesson}" / f"{safe_key}.txt"
+    if not file_path.exists():
+        return ""
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        return f.read()
 
 # ==========================
 # ElevenLabs helper
@@ -976,7 +1026,9 @@ PAGES = [
     {"id": "Enter your class", "label": "Class", "icon": "🎓"},
     {"id": "Access", "label": "Access", "icon": "🔐"},
     {"id": "Teacher Panel", "label": "Teacher", "icon": "📂"},
+    {"id": "Content Admin", "label": "Content admin", "icon": "⚙️"},
 ]
+
 
 
 def _get_query_params():
@@ -2244,9 +2296,98 @@ def render_page(page_id: str):
         access_page()
     elif page_id == "Teacher Panel":
         teacher_panel_page()
+    elif page_id == "Content Admin":
+        content_admin_page()
     else:
         overview_page()
 
+def content_admin_page():
+    show_logo()
+    st.title("⚙️ Content Admin – Dynamic updates")
+
+    name, email, role = get_current_user()
+    if role != "admin":
+        st.error(
+            "This area is only for admin. Please go to **Access → Admin** and enter your code."
+        )
+        return
+
+    st.markdown(
+        """
+Use this panel to **paste scripts or content** and save them as dynamic blocks.
+
+They are stored in:
+`content/unit<unit>/class<class>/<content_key>.txt`
+
+Later you can load them from your code for:
+- Audio scripts (ElevenLabs)
+- Listening texts
+- Dialogues
+- Extra class content
+        """
+    )
+
+    st.markdown("### 1. Select where to save")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        unit = st.number_input("Unit number", min_value=1, max_value=10, value=3, step=1)
+    with col2:
+        lesson = st.number_input("Class number", min_value=1, max_value=3, value=1, step=1)
+
+    content_key = st.text_input(
+        "Content key (example: audio_intro, dialog1, script_food_vocab)",
+        value="audio_intro",
+        help="This will be used as the filename, e.g. audio_intro.txt"
+    )
+
+    st.markdown("### 2. Content")
+
+    default_text = ""
+    if st.button("🔄 Load existing content (if any)"):
+        try:
+            existing = load_content_block(int(unit), int(lesson), content_key)
+            if existing:
+                st.success("Existing content loaded into the text area below.")
+                default_text = existing
+            else:
+                st.info("No existing content found for this Unit/Class/Key.")
+        except Exception as e:
+            st.error(f"Error loading content: {e}")
+
+    # Para evitar conflictos, usamos un key fijo y sólo ponemos default_text si viene de carga:
+    content_area = st.text_area(
+        "Paste or write your content here:",
+        value=default_text,
+        height=400,
+        key="content_admin_text",
+    )
+
+    st.markdown("### 3. Save / update")
+
+    if st.button("💾 Save / update content"):
+        try:
+            path = save_content_block(int(unit), int(lesson), content_key, content_area)
+            st.success(f"Content saved successfully in: `{path}`")
+        except Exception as e:
+            st.error(f"Error saving content: {e}")
+
+    st.markdown("---")
+    st.markdown(
+        """
+**Tip:**  
+You can now start refactoring your classes so instead of hard-coding long texts,  
+you load them with `load_content_block(unit, class, key)`.
+
+Example (Python):
+
+```python
+script = load_content_block(3, 1, "audio_intro")
+st.markdown(script)
+bash
+Copiar código
+    """
+)
 
 # ==========================
 # MAIN
