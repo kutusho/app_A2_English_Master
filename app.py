@@ -977,7 +977,6 @@ def render_floating_menu(current_page_id: str):
         is_active = (page_id == current_page_id)
         active_class = "active" if is_active else ""
 
-        # Cada item es un formulario GET que envía ?page=<page_id>
         items_html += f"""
 <form method="get" style="margin:0; padding:0;">
   <input type="hidden" name="page" value="{page_id}">
@@ -987,7 +986,6 @@ def render_floating_menu(current_page_id: str):
 </form>
 """
 
-    # Contenedor principal
     menu_html = textwrap.dedent(f"""
 <div class="floating-menu-wrapper">
   <input type="checkbox" id="floating-menu-toggle" class="floating-menu-toggle" />
@@ -1004,6 +1002,7 @@ def render_floating_menu(current_page_id: str):
 """)
 
     st.markdown(menu_html, unsafe_allow_html=True)
+
 
 # ==========================
 # HELPERS FOR AUDIO & PRESENTATIONS
@@ -1034,7 +1033,6 @@ def render_presentation_html(filename: str):
 
 # ==========================
 # UNIT 2 – SESSIONS
-# (Unidad 1 la conservas como ya la tenías si la usas)
 # ==========================
 
 def render_unit2_session1_hour1():
@@ -1430,6 +1428,12 @@ def render_unit2_session3_hour2():
     st.info(
         '"You should drink more water." / "You shouldn’t work so late at night."'
     )
+
+    st.markdown("---")
+    unit2_answer_box("S3", "H2", "listening", "Listening answers / notes")
+    unit2_answer_box("S3", "H2", "advice", "Advice for a healthier lifestyle")
+
+
 # ==========================
 # UNIT 3 – FOOD
 # CLASS 1 – FOOD VOCABULARY
@@ -1485,7 +1489,7 @@ Write short sentences:
             """
         )
 
-        warmup_text = st.text_area(
+        st.text_area(
             "Write your answers here:",
             placeholder="Example: For breakfast I usually eat eggs and tortillas. For lunch I eat chicken and rice..."
         )
@@ -1646,11 +1650,11 @@ Focus on **word stress**:
 
         st.markdown("### 4.1 Complete the sentences")
 
-        p1 = st.text_input("1) I like ______ (fruit).")
-        p2 = st.text_input("2) I don’t like ______ (vegetable).")
-        p3 = st.text_input("3) I usually drink ______ for breakfast.")
-        p4 = st.text_input("4) For lunch I eat ______ and ______.")
-        p5 = st.text_input("5) My favourite drink is ______.")
+        st.text_input("1) I like ______ (fruit).")
+        st.text_input("2) I don’t like ______ (vegetable).")
+        st.text_input("3) I usually drink ______ for breakfast.")
+        st.text_input("4) For lunch I eat ______ and ______.")
+        st.text_input("5) My favourite drink is ______.")
 
         if st.button("Show sample answers – Practice"):
             st.markdown(
@@ -1704,7 +1708,7 @@ Then answer the questions.
 
         st.markdown("### 5.2 Comprehension questions")
 
-        l1 = st.radio(
+        st.radio(
             "1) What does the woman want?",
             [
                 "Some apples and bananas",
@@ -1713,7 +1717,7 @@ Then answer the questions.
             ]
         )
 
-        l2 = st.radio(
+        st.radio(
             "2) What drink do they buy?",
             [
                 "Water",
@@ -1732,7 +1736,7 @@ Then answer the questions.
         st.markdown("---")
         st.markdown("### 5.3 Write 2–3 sentences about your shopping list")
 
-        shopping_text = st.text_area(
+        st.text_area(
             "Example: Today I want to buy rice, tomatoes, chicken and water.",
             key="u3c1_shopping_list"
         )
@@ -1762,15 +1766,12 @@ Complete:
             """
         )
 
-        reflection = st.text_area(
+        st.text_area(
             "Write your reflection here:",
             key="u3c1_reflection"
         )
 
         st.success("Great job! 🥗 Keep using this food vocabulary in real life.")
-    st.markdown("---")
-    unit2_answer_box("S3", "H2", "listening", "Listening answers / notes")
-    unit2_answer_box("S3", "H2", "advice", "Advice for a healthier lifestyle")
 
 
 # ==========================
@@ -1963,8 +1964,12 @@ def lessons_page():
             render_unit2_session3_hour1()
         else:
             render_unit2_session3_hour2()
-    if unit == "Unit 3 – Food" and lesson == "Class 1 – Food vocabulary":
-    unit3_class1_food_vocabulary()
+
+    # --- UNIT 3 special interactive class 1 ---
+    elif unit_number == 3 and "Class 1" in lesson_choice:
+        st.markdown("---")
+        st.markdown("### 🎧 Unit 3 – Session 1 · Mobile class")
+        unit3_class1_food_vocabulary()
 
 
 def assessment_page():
@@ -2041,7 +2046,7 @@ def access_page():
         else:
             name = st.text_input("Full name", key="reg_name")
             email = st.text_input("Email", key="reg_email")
-            goal = st.text_area("Why are you studying English? (optional)", key="reg_goal")
+            st.text_area("Why are you studying English? (optional)", key="reg_goal")
             if st.button("Create account & login", key="reg_btn"):
                 if name and email:
                     st.session_state["auth"]["logged_in"] = True
