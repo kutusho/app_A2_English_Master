@@ -1963,6 +1963,8 @@ def lessons_page():
             render_unit2_session3_hour1()
         else:
             render_unit2_session3_hour2()
+    if unit == "Unit 3 – Food" and lesson == "Class 1 – Food vocabulary":
+    unit3_class1_food_vocabulary()
 
 
 def assessment_page():
