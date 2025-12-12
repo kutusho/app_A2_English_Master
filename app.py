@@ -10,6 +10,7 @@ import requests  # <-- NEW: para llamar a la API de ElevenLabs
 import base64
 import json
 from typing import Optional
+from helpers.pexels_client import fetch_pexels_image
 
 # ==========================
 # BASIC CONFIG
@@ -1438,15 +1439,16 @@ def get_logo_data_uri() -> str:
 
 def get_shell_media(query: str = "english learning") -> dict:
     """
-    Placeholder media for the hero area. It will be upgraded with live images
-    when an API key is available.
+    Media for the hero area. Uses Pexels if available, otherwise falls back
+    to the local gradient.
     """
-    return {
-        "url": FLUNEX_GRADIENT_DATA_URI,
-        "alt": f"Flunex hero for {query}",
-        "query": query,
-        "attribution": None,
-    }
+    media = fetch_pexels_image(
+        query=query,
+        fallback_url=FLUNEX_GRADIENT_DATA_URI,
+        orientation="landscape",
+    )
+    media["url"] = media.get("url") or FLUNEX_GRADIENT_DATA_URI
+    return media
 
 
 def render_app_shell():
@@ -1496,8 +1498,14 @@ def render_app_shell():
 
 
 def render_banner(query: str, title: str, caption: str = ""):
-    media = get_shell_media(query)
+    media = fetch_pexels_image(
+        query=query,
+        fallback_url=FLUNEX_GRADIENT_DATA_URI,
+        orientation="landscape",
+    )
     url = (media.get("url") or FLUNEX_GRADIENT_DATA_URI).replace("'", "%27")
+    credit = media.get("attribution")
+    credit_html = f"<span class='flx-tag'>{credit}</span>" if credit else ""
     caption_html = f"<div class='flx-sub-banner__caption'>{caption}</div>" if caption else ""
 
     st.markdown(
@@ -1507,6 +1515,7 @@ def render_banner(query: str, title: str, caption: str = ""):
   <div class="flx-sub-banner__text">
     <div class="flx-sub-banner__headline">{title}</div>
     {caption_html}
+    {credit_html}
   </div>
 </div>
 """
@@ -3420,6 +3429,11 @@ actually experience in their daily life and work.
 def access_page():
     show_logo()
     st.title("🔐 Access")
+    render_banner(
+        query="study",
+        title="Access for students and teachers",
+        caption="Keep your progress and admin tools in sync across sessions.",
+    )
 
     st.subheader("Register to start learning")
     st.write(
