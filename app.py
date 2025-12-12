@@ -86,6 +86,36 @@ def logout_user():
     }
 
 
+def ensure_admin_access(
+    prefix: str,
+    prompt_label: str = "Admin access code",
+    button_label: str = "Enter as admin",
+    show_gate: bool = True,
+) -> bool:
+    """
+    Shared admin gate to keep auth consistent across pages.
+    """
+    name, email, role = get_current_user()
+    if role == "admin":
+        return True
+
+    if show_gate:
+        st.error("This area is only for admin.")
+
+    code = st.text_input(prompt_label, type="password", key=f"{prefix}_code")
+    if st.button(button_label, key=f"{prefix}_btn"):
+        if code == ADMIN_ACCESS_CODE:
+            st.session_state["auth"]["logged_in"] = True
+            st.session_state["auth"]["role"] = "admin"
+            st.session_state["auth"]["name"] = "Admin"
+            st.session_state["auth"]["email"] = "admin@local"
+            st.success("✅ Admin access granted.")
+            st.rerun()
+        else:
+            st.error("Invalid code")
+    return False
+
+
 def render_user_status_bar():
     """Show current session info on the top-right corner with a logout option."""
     auth = st.session_state.get("auth", {})
@@ -236,6 +266,39 @@ def load_content_block(unit: int, lesson: int, content_key: str) -> Optional[str
 
     with open(file_path, "r", encoding="utf-8") as f:
         return f.read()
+
+
+def structured_content_path(unit: int, lesson: int) -> Path:
+    return CONTENT_DIR / f"unit{unit}" / f"class{lesson}" / "content.json"
+
+
+def load_structured_content(unit: int, lesson: int) -> dict:
+    """
+    Carga contenido estructurado (JSON) para una clase.
+    """
+    path = structured_content_path(unit, lesson)
+    if not path.exists():
+        return {}
+
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def save_structured_content(unit: int, lesson: int, payload: dict) -> Path:
+    """
+    Guarda contenido estructurado (JSON) para una clase.
+    """
+    path = structured_content_path(unit, lesson)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = payload or {}
+    payload["updated_at"] = dt.datetime.now().isoformat(timespec="seconds")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2, ensure_ascii=False)
+    return path
 
 # ==========================
 # ElevenLabs helper
@@ -2439,6 +2502,155 @@ Complete:
 
 
 # ==========================
+# UNIT 3 – CLASS 2 – AT THE RESTAURANT (DYNAMIC)
+# ==========================
+
+DEFAULT_U3C2_CONTENT = {
+    "class_notes": (
+        "Target phrases for ordering politely:\n"
+        "- Can I have the menu, please?\n"
+        "- I would like the chicken soup.\n"
+        "- Would you like something to drink?\n"
+        "- The bill, please."
+    ),
+    "listening_dialogue": (
+        "Waiter: Good evening. Here is the menu.\n"
+        "Customer: Thanks. Can I have the tomato soup and the grilled chicken?\n"
+        "Waiter: Of course. Would you like something to drink?\n"
+        "Customer: Just water, please.\n"
+        "Waiter: Perfect. Anything else?\n"
+        "Customer: That's all, thank you."
+    ),
+    "elevenlabs_script": (
+        "[modo: teacher friendly]\n"
+        "[velocidad: super extra slow]\n"
+        "[pausas largas]\n"
+        "[Énfasis en: please]\n"
+        "Model a clear restaurant order. Say: Good evening, can I have the menu, please? "
+        "Pause. I would like the grilled chicken with vegetables. "
+        "Pause. To drink, just water. Finish with a calm thank you."
+    ),
+    "quiz_json": {
+        "questions": [
+            {
+                "question": "How do you politely ask for the menu?",
+                "options": [
+                    "Can I have the menu, please?",
+                    "Give me the menu.",
+                    "Menu now, thanks."
+                ],
+                "answer": "Can I have the menu, please?"
+            },
+            {
+                "question": "What does the waiter ask about drinks?",
+                "options": [
+                    "Do you want something to drink?",
+                    "You drink now?",
+                    "Bring your own drink?"
+                ],
+                "answer": "Do you want something to drink?"
+            }
+        ]
+    },
+}
+
+
+def _parse_quiz_payload(raw) -> list:
+    if not raw:
+        return []
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except Exception:
+            return []
+    if isinstance(raw, dict):
+        questions = raw.get("questions") or []
+    elif isinstance(raw, list):
+        questions = raw
+    else:
+        return []
+
+    parsed = []
+    for item in questions:
+        question = item.get("question")
+        options = item.get("options") or []
+        answer = item.get("answer")
+        if question and options and answer:
+            parsed.append(
+                {
+                    "question": question,
+                    "options": options,
+                    "answer": answer,
+                }
+            )
+    return parsed
+
+
+def render_unit3_class2_content(content: dict, preview: bool = False):
+    notes = content.get("class_notes") or DEFAULT_U3C2_CONTENT["class_notes"]
+    dialogue = content.get("listening_dialogue") or DEFAULT_U3C2_CONTENT["listening_dialogue"]
+    eleven_script = content.get("elevenlabs_script") or DEFAULT_U3C2_CONTENT["elevenlabs_script"]
+    quiz_questions = _parse_quiz_payload(content.get("quiz_json") or DEFAULT_U3C2_CONTENT.get("quiz_json"))
+    updated_at = content.get("updated_at")
+
+    st.markdown("### Class notes")
+    st.markdown(notes)
+    if updated_at:
+        st.caption(f"Last updated: {updated_at}")
+
+    tab_dialogue, tab_script, tab_quiz = st.tabs(["🔊 Dialogue & listening", "🎙️ ElevenLabs script", "🧠 Quick quiz"])
+
+    with tab_dialogue:
+        st.markdown("#### Dialogue")
+        st.text(dialogue)
+        st.info("Play your audio file or read this dialogue aloud for listening practice.")
+
+    with tab_script:
+        st.markdown("#### Teacher narration script")
+        st.text(eleven_script)
+        st.caption("Use this script with ElevenLabs. Tags include mode, speed, pauses and emphasis.")
+
+    with tab_quiz:
+        if not quiz_questions:
+            st.info("No quiz saved yet. Go to Content Admin to add one.")
+        else:
+            for idx, question in enumerate(quiz_questions):
+                key_suffix = "_preview" if preview else ""
+                choice = st.radio(
+                    question["question"],
+                    question["options"],
+                    key=f"u3c2_quiz_{idx}{key_suffix}",
+                )
+                if choice:
+                    if choice == question["answer"]:
+                        st.success("Correct!")
+                    else:
+                        st.warning(f"Suggested answer: {question['answer']}")
+
+
+def unit3_class2_at_restaurant():
+    st.title("Unit 3 – Food")
+    st.subheader("Class 2 – At the restaurant")
+    st.caption("A2 English Master · Flunex")
+    render_banner(
+        query="food",
+        title="At the restaurant",
+        caption="Polite requests, menus and clear pronunciation.",
+    )
+
+    stored_content = load_structured_content(3, 2)
+    has_custom_content = bool(stored_content)
+    content = stored_content if has_custom_content else DEFAULT_U3C2_CONTENT
+
+    if not has_custom_content:
+        st.info("Custom content is not saved yet. Using the default template below.")
+        if st.button("Open Content Admin", key="btn_open_admin_u3c2"):
+            go_to_page("Content Admin")
+
+    render_unit3_class2_content(content)
+
+
+# ==========================
 # INTERACTIVE CLASS CONFIG (Units 1 & 2)
 # ==========================
 
@@ -3377,6 +3589,9 @@ def lessons_page():
         st.markdown("---")
         st.markdown("### 📱 Unit 3 – Session 1 · Mobile class")
         unit3_class1_food_vocabulary()
+    elif unit_number == 3 and lesson_choice == "Class 2 – At the restaurant":
+        st.markdown("---")
+        unit3_class2_at_restaurant()
 
 
 def assessment_page():
@@ -3474,17 +3689,13 @@ def access_page():
     st.subheader("Admin access (teacher only)")
     st.write("Only for teacher / administrator.")
 
-    code = st.text_input("Admin access code", type="password", key="admin_code_access")
-    if st.button("Enter as admin", key="admin_btn_access"):
-        if code == ADMIN_ACCESS_CODE:
-            st.session_state["auth"]["logged_in"] = True
-            st.session_state["auth"]["role"] = "admin"
-            st.session_state["auth"]["name"] = "Admin"
-            st.session_state["auth"]["email"] = "admin@local"
-            st.success("✅ Admin access granted.")
-            st.rerun()
-        else:
-            st.error("Invalid code")
+    if ensure_admin_access(
+        prefix="access_admin",
+        prompt_label="Admin access code",
+        button_label="Enter as admin",
+        show_gate=False,
+    ):
+        st.success("✅ Admin access granted. You can now open Teacher or Content Admin.")
 
 
 def teacher_panel_page():
@@ -3495,20 +3706,7 @@ def teacher_panel_page():
     name, email, role = get_current_user()
 
     # Si NO es admin, pedimos el código AQUÍ MISMO
-    if role != "admin":
-        st.error("This area is only for admin.")
-
-        code = st.text_input("Admin access code", type="password", key="admin_code_teacher_panel")
-        if st.button("Enter as admin", key="admin_btn_teacher_panel"):
-            if code == ADMIN_ACCESS_CODE:
-                st.session_state["auth"]["logged_in"] = True
-                st.session_state["auth"]["role"] = "admin"
-                st.session_state["auth"]["name"] = "Admin"
-                st.session_state["auth"]["email"] = "admin@local"
-                st.success("✅ Admin access granted.")
-                st.rerun()
-            else:
-                st.error("Invalid code")
+    if not ensure_admin_access(prefix="teacher_panel"):
         return  # No seguimos dibujando el panel si aún no es admin
 
     # Si llegamos aquí, YA somos admin
@@ -3608,34 +3806,18 @@ def render_page(page_id: str):
 
 def content_admin_page():
     show_logo()
+    render_banner(
+        query="classroom",
+        title="Content Admin",
+        caption="Keep scripts, dialogues and quizzes in sync across the app.",
+    )
     st.title("⚙️ Content Admin – Dynamic updates")
 
     # Estado de autenticación actual
+    if not ensure_admin_access(prefix="content_admin", button_label="Enter as admin here"):
+        return
+
     name, email, role = get_current_user()
-
-    # Si NO eres admin, pedimos el código aquí mismo
-    if role != "admin":
-        st.error("This area is only for admin.")
-
-        code = st.text_input(
-            "Admin access code",
-            type="password",
-            key="content_admin_code",
-        )
-        if st.button("Enter as admin here", key="content_admin_btn"):
-            if code == ADMIN_ACCESS_CODE:
-                # Actualizamos la sesión global de auth
-                st.session_state["auth"]["logged_in"] = True
-                st.session_state["auth"]["role"] = "admin"
-                st.session_state["auth"]["name"] = "Admin"
-                st.session_state["auth"]["email"] = "admin@local"
-                st.success("✅ Admin access granted.")
-                st.rerun()
-            else:
-                st.error("Invalid code")
-        return  # No seguimos mostrando el panel si no es admin
-
-    # Si llegamos aquí, ya eres admin
     st.success(
         f"You are logged in as admin (**{name or 'Admin'}**). "
         "Use this panel to manage dynamic content."
@@ -3658,79 +3840,167 @@ You can use this for:
         """
     )
 
-    st.markdown("### 1. Select where to save / load")
+    with st.expander("General text blocks (legacy tools)", expanded=False):
+        st.markdown("#### 1. Select where to save / load")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            unit = st.number_input(
+                "Unit number",
+                min_value=1,
+                max_value=10,
+                value=3,
+                step=1,
+                key="content_unit",
+            )
+        with col2:
+            lesson = st.number_input(
+                "Class number",
+                min_value=1,
+                max_value=3,
+                value=1,
+                step=1,
+                key="content_lesson",
+            )
+        with col3:
+            content_type = st.selectbox(
+                "Content type",
+                [
+                    "elevenlabs_script",
+                    "listening_dialogue",
+                    "class_notes",
+                    "extra_text",
+                ],
+                index=0,
+                help=(
+                    "This is only a label to help you organize. "
+                    "You can create more keys later if needed."
+                ),
+                key="content_type",
+            )
 
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        unit = st.number_input(
-            "Unit number",
-            min_value=1,
-            max_value=10,
-            value=3,
-            step=1,
-            key="content_unit",
+        content_key = st.text_input(
+            "Content key (filename, without .txt)",
+            value=content_type,
+            key="content_key",
+            help="Example: 'u3_c1_supermarket_dialogue' or 'u3_c1_audio_intro'",
         )
-    with col2:
-        lesson = st.number_input(
-            "Class number",
-            min_value=1,
-            max_value=3,
-            value=1,
-            step=1,
-            key="content_lesson",
-        )
-    with col3:
-        content_type = st.selectbox(
-            "Content type",
-            [
-                "elevenlabs_script",
-                "listening_dialogue",
-                "class_notes",
-                "extra_text",
-            ],
-            index=0,
-            help=(
-                "This is only a label to help you organize. "
-                "You can create more keys later if needed."
-            ),
-            key="content_type",
+
+        st.markdown("#### 2. Content editor")
+
+        if st.button("🔄 Load existing content (if any)", key="load_dyn_content"):
+            existing = load_content_block(int(unit), int(lesson), content_key)
+            if existing is not None:
+                st.session_state["content_admin_text"] = existing
+                st.success("Existing content loaded into the editor.")
+            else:
+                st.info("No file found for this Unit/Class/Key yet.")
+
+        content_text = st.text_area(
+            "Paste or write your content here:",
+            value=st.session_state.get("content_admin_text", ""),
+            height=320,
+            key="content_admin_text",
         )
 
-    # El key real del archivo (sin extensión)
-    content_key = st.text_input(
-        "Content key (filename, without .txt)",
-        value=content_type,
-        key="content_key",
-        help="Example: 'u3_c1_supermarket_dialogue' or 'u3_c1_audio_intro'",
-    )
-
-    st.markdown("### 2. Content editor")
-
-    # Botón para cargar (si existe)
-    if st.button("🔄 Load existing content (if any)", key="load_dyn_content"):
-        existing = load_content_block(int(unit), int(lesson), content_key)
-        if existing is not None:
-            st.session_state["content_admin_text"] = existing
-            st.success("Existing content loaded into the editor.")
-        else:
-            st.info("No file found for this Unit/Class/Key yet.")
-
-    content_text = st.text_area(
-        "Paste or write your content here:",
-        value=st.session_state.get("content_admin_text", ""),
-        height=420,
-        key="content_admin_text",
-    )
-
-    st.markdown("### 3. Save / update")
-
-    if st.button("💾 Save / update content", key="save_dyn_content"):
-        path = save_content_block(int(unit), int(lesson), content_key, content_text)
-        st.success(f"Content saved successfully in: `{path}`")
+        if st.button("💾 Save / update content", key="save_dyn_content"):
+            path = save_content_block(int(unit), int(lesson), content_key, content_text)
+            st.success(f"Content saved successfully in: `{path}`")
 
     st.markdown("---")
-    st.markdown("### Quick debug (current auth)")
-    st.json(st.session_state.get("auth", {}))
+    st.subheader("Unit 3 – Class 2 · Structured content")
+    st.caption("Save class_notes, listening_dialogue, elevenlabs_script and quiz_json to feed the class page.")
+
+    existing_structured = load_structured_content(3, 2)
+    defaults = existing_structured if existing_structured else DEFAULT_U3C2_CONTENT
+
+    if existing_structured.get("updated_at"):
+        st.caption(f"Last saved: {existing_structured.get('updated_at')}")
+
+    if st.button("🔄 Load saved content", key="load_structured_u3c2"):
+        st.session_state["u3c2_notes"] = defaults.get("class_notes", "")
+        st.session_state["u3c2_dialogue"] = defaults.get("listening_dialogue", "")
+        st.session_state["u3c2_script"] = defaults.get("elevenlabs_script", "")
+        st.session_state["u3c2_quiz_text"] = json.dumps(
+            defaults.get("quiz_json", {}),
+            indent=2,
+            ensure_ascii=False,
+        )
+        st.success("Structured content loaded into the form.")
+        st.rerun()
+
+    notes_value = st.session_state.get("u3c2_notes", defaults.get("class_notes", ""))
+    dialogue_value = st.session_state.get("u3c2_dialogue", defaults.get("listening_dialogue", ""))
+    script_value = st.session_state.get("u3c2_script", defaults.get("elevenlabs_script", ""))
+    quiz_text_default = st.session_state.get("u3c2_quiz_text")
+    if quiz_text_default is None:
+        quiz_text_default = json.dumps(defaults.get("quiz_json", {}), indent=2, ensure_ascii=False)
+
+    notes_value = st.text_area(
+        "class_notes",
+        value=notes_value,
+        height=140,
+        key="u3c2_notes",
+    )
+    dialogue_value = st.text_area(
+        "listening_dialogue",
+        value=dialogue_value,
+        height=160,
+        key="u3c2_dialogue",
+    )
+    script_value = st.text_area(
+        "elevenlabs_script",
+        value=script_value,
+        height=160,
+        key="u3c2_script",
+    )
+    quiz_text = st.text_area(
+        "quiz_json (JSON)",
+        value=quiz_text_default,
+        height=200,
+        key="u3c2_quiz_text",
+        help="Use a JSON structure with a list of questions including question, options and answer.",
+    )
+
+    parsed_quiz = None
+    quiz_error = None
+    if quiz_text.strip():
+        try:
+            parsed_quiz = json.loads(quiz_text)
+        except Exception as exc:
+            quiz_error = str(exc)
+
+    if st.button("💾 Save structured content", key="save_structured_u3c2"):
+        if quiz_error:
+            st.error(f"Quiz JSON is invalid: {quiz_error}")
+        else:
+            payload = {
+                "class_notes": notes_value,
+                "listening_dialogue": dialogue_value,
+                "elevenlabs_script": script_value,
+                "quiz_json": parsed_quiz if parsed_quiz is not None else [],
+            }
+            path = save_structured_content(3, 2, payload)
+            st.success(f"Structured content saved in: `{path}`")
+
+    st.markdown("#### Preview (student view)")
+    if parsed_quiz is None and not quiz_text.strip():
+        preview_quiz = []
+    else:
+        preview_quiz = parsed_quiz if parsed_quiz is not None else defaults.get("quiz_json", [])
+    if quiz_error:
+        st.warning("Quiz preview uses the last valid data because the JSON is invalid.")
+
+    preview_payload = {
+        "class_notes": notes_value,
+        "listening_dialogue": dialogue_value,
+        "elevenlabs_script": script_value,
+        "quiz_json": preview_quiz,
+        "updated_at": existing_structured.get("updated_at"),
+    }
+    render_unit3_class2_content(preview_payload, preview=True)
+
+    with st.expander("Quick debug (current auth)"):
+        st.json(st.session_state.get("auth", {}))
 
 # ==========================
 # MAIN
