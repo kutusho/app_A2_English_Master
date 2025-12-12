@@ -88,10 +88,6 @@ def eleven_generate_audio(text: str, voice_id: str, filename: str, model_id: str
 # ==========================
 
 def init_session():
-    """
-    Inicializa la sesión SOLO la primera vez.
-    Así no se pierde el rol (student/admin) al cambiar de página.
-    """
     if "auth" not in st.session_state:
         st.session_state["auth"] = {
             "logged_in": False,
@@ -99,6 +95,7 @@ def init_session():
             "name": "",
             "email": "",
         }
+
 
 
 def get_current_user():
