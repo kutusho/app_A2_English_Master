@@ -1258,12 +1258,47 @@ def content_admin_page():
     # Usamos el helper estándar
     name, email, role = get_current_user()
 
-    # Si NO eres admin, solo avisamos y pedimos ir a Access → Admin
+    # ==========================
+    # 1) Filtro + LOGIN DE RESPALDO AQUÍ MISMO
+    # ==========================
     if role != "admin":
-        st.error("This area is only for admin. Please go to **Access → Admin** and enter your code.")
-        return
+        st.error("This area is only for admin.")
 
-    # Si llegaste aquí, ya eres admin
+        st.markdown(
+            "If you are the admin, please enter your **admin access code** here "
+            "so you don't need to go back to the Access page."
+        )
+
+        code_local = st.text_input(
+            "Admin access code",
+            type="password",
+            key="content_admin_code",
+        )
+
+        if st.button("Enter as admin here", key="content_admin_btn"):
+            if code_local == ADMIN_ACCESS_CODE:
+                # Aseguramos que auth exista
+                if "auth" not in st.session_state:
+                    st.session_state["auth"] = {
+                        "logged_in": False,
+                        "role": "guest",
+                        "name": "",
+                        "email": "",
+                    }
+
+                st.session_state["auth"]["logged_in"] = True
+                st.session_state["auth"]["role"] = "admin"
+                st.session_state["auth"]["name"] = "Admin"
+                st.session_state["auth"]["email"] = "admin@local"
+                st.success("✅ Admin access granted from Content Admin.")
+                st.rerun()
+            else:
+                st.error("Invalid admin code.")
+        return  # Todavía no eres admin, cortamos aquí
+
+    # ==========================
+    # 2) Ya eres admin → panel normal
+    # ==========================
     st.success(f"You are logged in as admin (**{name or 'Admin'}**). You can edit dynamic content.")
 
     st.markdown(
@@ -1323,7 +1358,6 @@ Later you can load them from your code for:
             st.success(f"Content saved successfully in: `{path}`")
         except Exception as e:
             st.error(f"Error saving content: {e}")
-
 
 # ==========================
 # PAGE ROUTER
