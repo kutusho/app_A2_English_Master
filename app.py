@@ -2702,7 +2702,10 @@ def render_a2_unit_lesson(default_unit="Unit 3 – Food", default_lesson="Class 
 
     st.divider()
     renderer = curriculum[selected_unit][selected_lesson].get("renderer", render_placeholder_lesson)
-    renderer(unit_title=selected_unit, lesson_title=selected_lesson)
+    if renderer is render_u3_c2_at_the_restaurant:
+        renderer(unit_title=selected_unit, lesson_title=selected_lesson, key_prefix="u3c2_selector")
+    else:
+        renderer(unit_title=selected_unit, lesson_title=selected_lesson)
 
 
 def render_placeholder_lesson(unit_title: str, lesson_title: str):
@@ -2710,7 +2713,7 @@ def render_placeholder_lesson(unit_title: str, lesson_title: str):
     st.info("This lesson is not developed yet. Add content by creating a new renderer function like Unit 3 • Class 2.")
 
 
-def render_u3_c2_at_the_restaurant(unit_title: str, lesson_title: str):
+def render_u3_c2_at_the_restaurant(unit_title: str, lesson_title: str, key_prefix: str = "u3c2"):
     st.subheader(f"{unit_title} • {lesson_title}")
     render_banner(
         query="food",
@@ -2739,9 +2742,9 @@ def render_u3_c2_at_the_restaurant(unit_title: str, lesson_title: str):
     with tabs[0]:
         st.markdown("#### Warm-up (5–7 min)")
         st.write("Answer these questions:")
-        st.checkbox("1) Do you prefer eating at home or eating out?", key="u3c2_warm_1")
-        st.checkbox("2) What’s your favorite restaurant? Why?", key="u3c2_warm_2")
-        st.checkbox("3) What do you usually order: starter, main course, dessert?", key="u3c2_warm_3")
+        st.checkbox("1) Do you prefer eating at home or eating out?", key=f"{key_prefix}_warm_1")
+        st.checkbox("2) What’s your favorite restaurant? Why?", key=f"{key_prefix}_warm_2")
+        st.checkbox("3) What do you usually order: starter, main course, dessert?", key=f"{key_prefix}_warm_3")
         st.markdown("**Quick task:** Choose one situation and say one sentence.")
         st.write("- You want a table.\n- You want to order.\n- You want the bill/check.")
 
@@ -4019,6 +4022,7 @@ def lessons_page():
         render_u3_c2_at_the_restaurant(
             unit_title=f"Unit {unit_number} – {UNITS[unit_number - 1]['name']}",
             lesson_title=lesson_choice,
+            key_prefix="u3c2_main",
         )
     elif unit_number == 3 and lesson_choice == "Class 3 – Talking about food you like":
         st.markdown("---")
