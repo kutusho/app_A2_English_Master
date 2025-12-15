@@ -2669,7 +2669,7 @@ def get_a2_curriculum():
         "Unit 3 – Food": {
             "Class 1 – Food preferences": {"renderer": render_placeholder_lesson},
             "Class 2 – At the restaurant": {"renderer": render_u3_c2_at_the_restaurant},
-            "Class 3 – Healthy choices": {"renderer": render_placeholder_lesson},
+            "Class 3 – Talking about food you like": {"renderer": render_u3_c3_talking_about_food_you_like},
         },
     }
 
@@ -2884,6 +2884,195 @@ Examples:
             go_to_page("Content Admin")
     render_unit3_class2_content(content, preview=True)
     st.success("Unit 3 • Class 2 is ready. Add your audio file path later where indicated.")
+
+
+def render_u3_c3_talking_about_food_you_like(
+    unit_title: str = "Unit 3 – Food",
+    lesson_title: str = "Class 3 – Talking about food you like"
+):
+    st.subheader(f"{unit_title} • {lesson_title}")
+
+    st.markdown(
+        """
+**Lesson outcomes (A2):**
+- Talk about food you like and dislike (with reasons).
+- Use **love/like/don’t mind/don’t like/hate** + nouns and verbs.
+- Ask and answer questions about food preferences politely.
+
+**Target language:**
+- *I love sushi.* / *I don’t like spicy food.* / *I don’t mind vegetables.*
+- *I like cooking.* / *I hate waiting for food.*
+- *My favorite… is… because…* / *I prefer… to…*
+        """
+    )
+
+    tabs = st.tabs(
+        ["Warm-up", "Vocabulary", "Grammar", "Pronunciation", "Listening", "Speaking", "Reading", "Writing", "Homework"]
+    )
+
+    with tabs[0]:
+        st.markdown("#### Warm-up (5–7 min)")
+        st.write("Choose quick answers. Then say a full sentence for each one.")
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.radio("Sweet or savory?", ["Sweet", "Savory"], key="u3c3_warm_1")
+        with c2:
+            st.radio("Tea or coffee?", ["Tea", "Coffee"], key="u3c3_warm_2")
+        with c3:
+            st.radio("Eat out or cook at home?", ["Eat out", "Cook at home"], key="u3c3_warm_3")
+
+        st.markdown("**Speaking prompt (30 seconds):**")
+        st.write("Tell me your favorite food and one reason you like it.")
+
+    with tabs[1]:
+        st.markdown("#### Vocabulary: Food adjectives + preference verbs")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("**Taste & texture**")
+            st.write("- spicy / mild\n- sweet / salty / sour / bitter\n- crunchy / soft\n- creamy\n- fresh\n- greasy / oily")
+            st.markdown("**Cooking methods**")
+            st.write("- grilled\n- fried\n- baked\n- boiled\n- steamed")
+        with col2:
+            st.markdown("**Preference verbs**")
+            st.write("- love\n- like\n- enjoy\n- don’t mind\n- don’t like\n- hate")
+            st.markdown("**Useful phrases**")
+            st.write("- *My favorite dish is…*\n- *I’m not a fan of…*\n- *It’s too… (spicy/salty/sweet).*")
+
+        with st.expander("Quick practice (categorize)"):
+            st.write("Put these words into two groups: taste / texture.")
+            st.write("**spicy, crunchy, creamy, salty, soft, bitter, fresh, sweet**")
+
+    with tabs[2]:
+        st.markdown("#### Grammar (A2): love/like/hate + nouns & -ing")
+        st.markdown(
+            """
+**1) Verb + noun**
+- *I love tacos.*  
+- *I don’t like onions.*  
+
+**2) Verb + -ing (activity)**
+- *I like cooking.*  
+- *I hate waiting.*  
+
+**3) Prefer / Would rather**
+- *I prefer tea to coffee.*  
+- *I’d rather eat at home today.* (more natural for “today/now”)
+
+**4) Because + reason**
+- *I like mango because it’s sweet and fresh.*  
+            """
+        )
+
+        with st.expander("Controlled practice (fill the gaps)"):
+            st.write("Complete the sentences with **love / like / don’t mind / don’t like / hate**:")
+            st.write("1) I ______ spicy food, but I love mild food.")
+            st.write("2) I ______ vegetables. They’re healthy.")
+            st.write("3) I ______ cooking at home on weekends.")
+            st.write("4) I ______ waiting for a table at restaurants.")
+
+        with st.expander("Error correction"):
+            st.write("Fix the mistakes:")
+            st.write("1) *I like to eating pizza.*")
+            st.write("2) *I prefer coffee than tea.*")
+            st.write("3) *I don’t mind eat spicy food.*")
+
+    with tabs[3]:
+        st.markdown("#### Pronunciation (5 min): /sp/ and word stress")
+        st.write("Repeat and focus on the first sound:")
+        st.write("- **sp**icy, **sp**oon, **sp**aghetti")
+        st.write("Now stress the strong syllable:")
+        st.write("- VE-ge-ta-bles\n- CHO-co-late\n- DES-sert\n- a-PPE-ti-zer")
+
+    with tabs[4]:
+        st.markdown("#### Listening (8–10 min)")
+        st.write("Option A: Use this dialogue as a listening/role-read. Option B: Add your audio and play it here.")
+
+        st.markdown("**Dialogue (model):**")
+        st.markdown(
+            """
+**A:** What food do you like?  
+**B:** I love Mexican food, especially tacos.  
+**A:** Nice. Do you like spicy food?  
+**B:** I like it, but not too spicy. I don’t like very hot sauces.  
+**A:** What’s your favorite drink?  
+**B:** I prefer lemonade to soda because it’s refreshing.  
+**A:** Do you enjoy cooking?  
+**B:** Yes, I like cooking at home on weekends. I hate waiting in long lines at restaurants.
+            """
+        )
+
+        with st.expander("Comprehension questions"):
+            st.write("1) What food does B love?")
+            st.write("2) Does B like very hot sauces?")
+            st.write("3) What drink does B prefer and why?")
+            st.write("4) What does B hate?")
+
+    with tabs[5]:
+        st.markdown("#### Speaking (10–15 min): Juego de roles + mini-interview")
+        st.write("Round 1: Interview your partner. Round 2: Switch roles.")
+
+        st.markdown("**Questions to ask:**")
+        st.write("- What food do you love?")
+        st.write("- What food don’t you like? Why?")
+        st.write("- Do you prefer sweet or savory food?")
+        st.write("- Do you like cooking? What do you like cooking?")
+        st.write("- What’s your favorite drink?")
+
+        with st.expander("Answer frames (A2 support)"):
+            st.write("- *I love… because…*")
+            st.write("- *I don’t like… because it’s too…*")
+            st.write("- *I prefer… to…*")
+            st.write("- *My favorite… is…*")
+
+        st.markdown("**Challenge:** Use 3 adjectives (spicy, sweet, crunchy, etc.).")
+
+    with tabs[6]:
+        st.markdown("#### Reading (7–10 min): Short food post")
+        st.markdown(
+            """
+**Food post**
+
+Hi! My name is Alex. I love Italian food because it’s simple and delicious.  
+My favorite dish is pasta with tomato sauce. I also like salads and fresh fruit.  
+I don’t like very spicy food, and I hate oily snacks.  
+On weekends, I enjoy cooking at home, but I prefer eating out with friends on my birthday.
+            """
+        )
+
+        with st.expander("Questions"):
+            st.write("1) Why does Alex love Italian food?")
+            st.write("2) What is Alex’s favorite dish?")
+            st.write("3) What food doesn’t Alex like?")
+            st.write("4) When does Alex enjoy cooking at home?")
+
+    with tabs[7]:
+        st.markdown("#### Writing (8–10 min): My food profile (A2)")
+        st.write("Write 6–8 sentences. Include:")
+        st.write("- favorite food + reason")
+        st.write("- one food you don’t like + reason")
+        st.write("- one drink you prefer")
+        st.write("- one cooking activity you like/don’t like")
+
+        st.text_area("Write here:", height=220, key="u3c3_writing_profile")
+
+        with st.expander("Model answer (A2)"):
+            st.markdown(
+                """
+I love Mexican food because it’s flavorful. My favorite dish is tacos.  
+I like sweet fruit, especially mango. I don’t like very spicy food because it hurts my mouth.  
+I prefer lemonade to soda because it’s refreshing.  
+I like cooking at home on weekends, but I hate washing a lot of dishes.
+                """
+            )
+
+    with tabs[8]:
+        st.markdown("#### Homework (10–15 min)")
+        st.write("1) Vocabulary: Choose 10 words from today and write 10 sentences.")
+        st.write("2) Speaking: Record yourself for 45–60 seconds: “My food preferences.”")
+        st.write("3) Challenge: Use **prefer…to…** and **because** at least once.")
+
+    st.success("Unit 3 • Class 3 is ready. Add audio with st.audio() when you have the file path.")
 
 
 # ==========================
@@ -3828,6 +4017,12 @@ def lessons_page():
     elif unit_number == 3 and lesson_choice == "Class 2 – At the restaurant":
         st.markdown("---")
         render_u3_c2_at_the_restaurant(
+            unit_title=f"Unit {unit_number} – {UNITS[unit_number - 1]['name']}",
+            lesson_title=lesson_choice,
+        )
+    elif unit_number == 3 and lesson_choice == "Class 3 – Talking about food you like":
+        st.markdown("---")
+        render_u3_c3_talking_about_food_you_like(
             unit_title=f"Unit {unit_number} – {UNITS[unit_number - 1]['name']}",
             lesson_title=lesson_choice,
         )
