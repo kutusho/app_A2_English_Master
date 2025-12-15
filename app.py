@@ -2651,6 +2651,242 @@ def unit3_class2_at_restaurant():
 
 
 # ==========================
+# A2 PROGRAM – CURRICULUM SELECTOR + UNIT 3 CLASS 2 (SNIPPET INTEGRATION)
+# ==========================
+
+def get_a2_curriculum():
+    return {
+        "Unit 1 – Introductions & Routines": {
+            "Class 1 – Everyday life": {"renderer": render_placeholder_lesson},
+            "Class 2 – Describing people": {"renderer": render_placeholder_lesson},
+            "Class 3 – Talking about habits": {"renderer": render_placeholder_lesson},
+        },
+        "Unit 2 – Travel & Plans": {
+            "Class 1 – Getting around": {"renderer": render_placeholder_lesson},
+            "Class 2 – Making plans": {"renderer": render_placeholder_lesson},
+            "Class 3 – At the hotel": {"renderer": render_placeholder_lesson},
+        },
+        "Unit 3 – Food": {
+            "Class 1 – Food preferences": {"renderer": render_placeholder_lesson},
+            "Class 2 – At the restaurant": {"renderer": render_u3_c2_at_the_restaurant},
+            "Class 3 – Healthy choices": {"renderer": render_placeholder_lesson},
+        },
+    }
+
+
+def render_a2_unit_lesson(default_unit="Unit 3 – Food", default_lesson="Class 2 – At the restaurant"):
+    curriculum = get_a2_curriculum()
+    units = list(curriculum.keys())
+    unit_index = units.index(default_unit) if default_unit in units else 0
+
+    st.markdown("### Choose your unit")
+    selected_unit = st.selectbox(
+        label="Choose your unit",
+        options=units,
+        index=unit_index,
+        label_visibility="collapsed",
+        key="a2_selector_unit",
+    )
+
+    lessons = list(curriculum[selected_unit].keys())
+    lesson_index = lessons.index(default_lesson) if default_lesson in lessons else 0
+
+    st.markdown("### Choose your lesson")
+    selected_lesson = st.selectbox(
+        label="Choose your lesson",
+        options=lessons,
+        index=lesson_index,
+        label_visibility="collapsed",
+        key="a2_selector_lesson",
+    )
+
+    st.divider()
+    renderer = curriculum[selected_unit][selected_lesson].get("renderer", render_placeholder_lesson)
+    renderer(unit_title=selected_unit, lesson_title=selected_lesson)
+
+
+def render_placeholder_lesson(unit_title: str, lesson_title: str):
+    st.subheader(f"{unit_title} • {lesson_title}")
+    st.info("This lesson is not developed yet. Add content by creating a new renderer function like Unit 3 • Class 2.")
+
+
+def render_u3_c2_at_the_restaurant(unit_title: str, lesson_title: str):
+    st.subheader(f"{unit_title} • {lesson_title}")
+    render_banner(
+        query="food",
+        title="At the restaurant",
+        caption="Polite requests, menus and clear pronunciation.",
+    )
+
+    st.markdown(
+        """
+**Lesson outcomes (A2):**
+- Order food and drinks politely in a restaurant.
+- Ask about ingredients, prices, and recommendations.
+- Handle common situations (requests, problems, paying the bill).
+
+**Target language:**
+- Polite requests: *Could I have…? / Can I get…? / I’d like…*
+- Questions: *What do you recommend? / Does it have…? / How much is…?*
+- Restaurant phrases: *starter, main course, dessert, bill/check, tip, table for two*
+        """
+    )
+
+    tabs = st.tabs(
+        ["Warm-up", "Vocabulary", "Grammar & Functional Language", "Listening", "Speaking", "Reading", "Writing", "Homework"]
+    )
+
+    with tabs[0]:
+        st.markdown("#### Warm-up (5–7 min)")
+        st.write("Answer these questions:")
+        st.checkbox("1) Do you prefer eating at home or eating out?", key="u3c2_warm_1")
+        st.checkbox("2) What’s your favorite restaurant? Why?", key="u3c2_warm_2")
+        st.checkbox("3) What do you usually order: starter, main course, dessert?", key="u3c2_warm_3")
+        st.markdown("**Quick task:** Choose one situation and say one sentence.")
+        st.write("- You want a table.\n- You want to order.\n- You want the bill/check.")
+
+    with tabs[1]:
+        st.markdown("#### Vocabulary: Restaurant words & phrases")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("**Menu sections**")
+            st.write("- starter / appetizer\n- main course\n- side dish\n- dessert\n- drinks / beverages")
+            st.markdown("**People & places**")
+            st.write("- waiter / waitress / server\n- chef\n- table / booth\n- reservation")
+        with col2:
+            st.markdown("**Actions**")
+            st.write("- order\n- recommend\n- pay\n- tip\n- split the bill")
+            st.markdown("**Useful phrases**")
+            st.write("- *A table for two, please.*\n- *Could we see the menu?*\n- *Could I have the bill/check, please?*")
+        with st.expander("Mini-practice (matching)"):
+            st.write("Match the phrases to the meaning (say them out loud).")
+            st.write("1) *I’d like…* → (A) asking for the price / (B) requesting an item")
+            st.write("2) *What do you recommend?* → (A) asking for a suggestion / (B) asking for the bill")
+            st.write("3) *Could we have the bill/check?* → (A) paying / (B) ordering")
+
+    with tabs[2]:
+        st.markdown("#### Grammar & Functional Language: Polite requests")
+        st.markdown(
+            """
+Use polite forms to sound friendly and professional:
+
+- **Can I get…?** (common, polite)
+- **Could I have…?** (more polite)
+- **I’d like…** (very common)
+- **Could you…?** (requests to the server)
+
+Examples:
+- *Could I have the grilled chicken, please?*
+- *Can I get a glass of water?*
+- *I’d like the vegetable soup.*
+- *Could you bring some extra napkins, please?*
+            """
+        )
+        with st.expander("Controlled practice (fill the gaps)"):
+            st.write("Complete the sentences:")
+            st.write("1) ______ I have the menu, please?")
+            st.write("2) I’d ______ the pasta, please.")
+            st.write("3) Can I ______ a coffee?")
+            st.write("4) Could you ______ the bill/check, please?")
+
+    with tabs[3]:
+        st.markdown("#### Listening (8–10 min)")
+        st.write("If you have an audio file, place it here. Otherwise, read the dialogue first, then role-read it.")
+        st.markdown("**Dialogue (model):**")
+        st.markdown(
+            """
+**Server:** Good evening. Do you have a reservation?  
+**Customer:** No, we don’t. A table for two, please.  
+**Server:** Of course. This way, please. Here are the menus.  
+**Customer:** Thank you. What do you recommend?  
+**Server:** Our grilled fish is very popular.  
+**Customer:** Sounds good. Could I have the grilled fish, please?  
+**Server:** Sure. And to drink?  
+**Customer:** Can I get a lemonade, please?  
+**Server:** Absolutely.  
+**Customer:** Excuse me—does the fish have any nuts?  
+**Server:** No, it doesn’t.  
+**Customer:** Great. And could we have the bill/check, please?  
+**Server:** Certainly.
+            """
+        )
+        with st.expander("Comprehension questions"):
+            st.write("1) How many people are there?")
+            st.write("2) What does the customer order?")
+            st.write("3) What allergy question does the customer ask?")
+            st.write("4) What does the customer ask at the end?")
+
+    with tabs[4]:
+        st.markdown("#### Speaking (10–15 min): Juego de roles")
+        st.write("Do 2 rounds. Switch roles.")
+        st.markdown("**Role A (Customer):**")
+        st.write("- You want a table.\n- Ask for a recommendation.\n- Order a main course and a drink.\n- Ask one question about ingredients.\n- Ask for the bill/check.")
+        st.markdown("**Role B (Server):**")
+        st.write("- Greet the customer.\n- Offer a table.\n- Recommend a dish.\n- Confirm the order.\n- Answer the ingredients question.\n- Bring the bill/check.")
+        with st.expander("Useful sentence starters"):
+            st.write("- *A table for…, please.*")
+            st.write("- *What do you recommend?*")
+            st.write("- *Could I have…?*")
+            st.write("- *Does it have…?*")
+            st.write("- *Could we have the bill/check, please?*")
+
+    with tabs[5]:
+        st.markdown("#### Reading (7–10 min): Mini-menu")
+        st.markdown(
+            """
+**Today’s Menu**
+
+**Starters**
+- Tomato soup — $4.50  
+- Mixed salad — $5.00  
+
+**Main courses**
+- Grilled chicken with rice — $10.50  
+- Pasta primavera (vegetarian) — $9.80  
+- Grilled fish with vegetables — $12.00  
+
+**Desserts**
+- Chocolate cake — $4.90  
+- Fruit salad — $4.20  
+
+**Drinks**
+- Water — $1.50  
+- Lemonade — $2.80  
+- Coffee — $2.00  
+            """
+        )
+        with st.expander("Questions"):
+            st.write("1) Which main course is vegetarian?")
+            st.write("2) How much is the grilled fish?")
+            st.write("3) Choose a full meal (starter + main + drink). What’s the total?")
+
+    with tabs[6]:
+        st.markdown("#### Writing (8–10 min): Short restaurant dialogue")
+        st.write("Write a short dialogue (6–8 lines). Include:")
+        st.write("- greeting\n- order (food + drink)\n- one question (ingredients/price)\n- asking for the bill/check")
+        st.text_area("Your dialogue:", height=180, key="u3c2_writing_dialogue")
+
+    with tabs[7]:
+        st.markdown("#### Homework (10–15 min)")
+        st.write("1) Memorize 10 restaurant words from the vocabulary list.")
+        st.write("2) Record yourself saying 6 polite requests (your choice).")
+        st.write("3) Write a 5-line restaurant review (A2 level):")
+        st.write("- Where you went\n- What you ate\n- Price (cheap/expensive)\n- Service (good/bad)\n- Would you recommend it?")
+
+    st.markdown("---")
+    st.markdown("### Content Admin: dynamic materials")
+    stored_content = load_structured_content(3, 2)
+    has_custom_content = bool(stored_content)
+    content = stored_content if has_custom_content else DEFAULT_U3C2_CONTENT
+    if not has_custom_content:
+        st.info("Custom content is not saved yet. Using the default template below.")
+        if st.button("Open Content Admin", key="btn_open_admin_u3c2_selector"):
+            go_to_page("Content Admin")
+    render_unit3_class2_content(content, preview=True)
+    st.success("Unit 3 • Class 2 is ready. Add your audio file path later where indicated.")
+
+
+# ==========================
 # INTERACTIVE CLASS CONFIG (Units 1 & 2)
 # ==========================
 
@@ -3591,7 +3827,13 @@ def lessons_page():
         unit3_class1_food_vocabulary()
     elif unit_number == 3 and lesson_choice == "Class 2 – At the restaurant":
         st.markdown("---")
-        unit3_class2_at_restaurant()
+        render_u3_c2_at_the_restaurant(
+            unit_title=f"Unit {unit_number} – {UNITS[unit_number - 1]['name']}",
+            lesson_title=lesson_choice,
+        )
+
+    with st.expander("Try the A2 program selector (beta)"):
+        render_a2_unit_lesson()
 
 
 def assessment_page():
