@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from pathlib import Path
+import re
 import streamlit.components.v1 as components  # Para embeber las presentaciones HTML
 import datetime as dt
 import csv
@@ -50,7 +51,12 @@ _FLUNEX_GRADIENT_SVG = """
 FLUNEX_GRADIENT_DATA_URI = "data:image/svg+xml;base64," + base64.b64encode(_FLUNEX_GRADIENT_SVG.encode("utf-8")).decode("ascii")
 
 # ElevenLabs API key desde secrets
-ELEVEN_API_KEY = st.secrets.get("ELEVEN_API_KEY", None)
+ELEVEN_API_KEY = st.secrets.get("61a51c963b7b3b715e905829b76db88ee57c9df41c21dec29eefc20ab8fa6e9e") or os.getenv("61a51c963b7b3b715e905829b76db88ee57c9df41c21dec29eefc20ab8fa6e9e")
+DEFAULT_ELEVEN_VOICE_ID = (
+    st.secrets.get("ELEVEN_VOICE_ID")
+    or os.getenv("ELEVEN_VOICE_ID")
+    or "RILOU7YmBhvwJGDGjNmP"
+)
 
 # ==========================
 # ADMIN / AUTH CONFIG
@@ -304,46 +310,118 @@ def save_structured_content(unit: int, lesson: int, payload: dict) -> Path:
 # ElevenLabs helper
 # ==========================
 
-def generate_audio_elevenlabs(text: str, voice_id: str, filename: str):
+def _slugify_audio_label(label: str) -> str:
     """
-    Genera audio con ElevenLabs (una voz) y lo guarda en AUDIO_DIR/filename.
+    Convierte un texto en un slug para usarlo en el nombre de archivo.
+    """
+    label = (label or "audio").lower()
+    slug = re.sub(r"[^a-z0-9]+", "_", label).strip("_")
+    return slug or "audio"
+
+
+def build_audio_filename(unit: int, slot: str, slot_number: int, audio_number: int, label: str) -> str:
+    """
+    Genera nombres consistentes tipo: U3_C1_audio2_at_the_supermarket.mp3
+    slot: 'S' (session) | 'C' (class) | 'H' (hour) – se toma la primera letra.
+    """
+    slot_code = (slot or "S").strip().upper()
+    slot_code = slot_code[0] if slot_code else "S"
+    if slot_code not in {"S", "C", "H"}:
+        slot_code = "S"
+
+    slug = _slugify_audio_label(label)
+    return f"U{int(unit)}_{slot_code}{int(slot_number)}_audio{int(audio_number)}_{slug}.mp3"
+
+
+def generate_audio_elevenlabs(
+    text: str,
+    voice_id: Optional[str],
+    filename: str,
+    *,
+    model_id: str = "eleven_turbo_v2",
+):
+    """
+    Genera audio con ElevenLabs y lo guarda en AUDIO_DIR/filename.
     Retorna la ruta completa del archivo o None si falla.
     """
-    if not ELEVEN_API_KEY:
-        st.error("ELEVEN_API_KEY no está configurado en .streamlit/secrets.toml o en Streamlit Cloud.")
+    api_key = ELEVEN_API_KEY
+    if not api_key:
+        st.error("ELEVEN_API_KEY no está configurado en .streamlit/secrets.toml o en el entorno.")
         return None
 
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+    voice = voice_id or DEFAULT_ELEVEN_VOICE_ID
+    if not voice:
+        st.error("Falta configurar el ID de voz de ElevenLabs.")
+        return None
 
+    clean_text = (text or "").strip()
+    if not clean_text:
+        st.error("Escribe un script antes de generar el audio.")
+        return None
+
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice}"
     headers = {
-        "xi-api-key": ELEVEN_API_KEY,
-        "Content-Type": "application/json"
+        "xi-api-key": api_key,
+        "Content-Type": "application/json",
+        "Accept": "audio/mpeg",
     }
-
     payload = {
-        "model_id": "eleven_turbo_v2",
-        "text": text,
+        "model_id": model_id,
+        "text": clean_text,
         "voice_settings": {
             "stability": 0.4,
-            "similarity_boost": 0.8
-        }
+            "similarity_boost": 0.8,
+        },
     }
 
     try:
-        resp = requests.post(url, json=payload, headers=headers)
-        if resp.status_code != 200:
-            st.error(f"Error ElevenLabs: {resp.status_code} – {resp.text}")
-            return None
+        resp = requests.post(url, json=payload, headers=headers, timeout=40)
+    except requests.RequestException as exc:
+        st.error(f"Error llamando a ElevenLabs: {exc}")
+        return None
 
-        AUDIO_DIR.mkdir(exist_ok=True)
-        audio_path = AUDIO_DIR / filename
+    if resp.status_code != 200:
+        try:
+            detail = resp.json()
+        except Exception:
+            detail = resp.text
+        st.error(f"Error ElevenLabs ({resp.status_code}): {detail}")
+        return None
+
+    AUDIO_DIR.mkdir(exist_ok=True)
+    audio_path = AUDIO_DIR / filename
+    try:
         with open(audio_path, "wb") as f:
             f.write(resp.content)
-
-        return audio_path
-    except Exception as e:
-        st.error(f"Error llamando a ElevenLabs: {e}")
+    except Exception as exc:
+        st.error(f"No se pudo guardar el audio: {exc}")
         return None
+
+    return audio_path
+
+
+def generate_audio_with_metadata(
+    text: str,
+    voice_id: Optional[str],
+    unit: int,
+    slot: str,
+    slot_number: int,
+    audio_number: int,
+    label: str,
+    *,
+    model_id: str = "eleven_turbo_v2",
+):
+    """
+    Envuelve la generación de audio y crea el nombre correcto automáticamente.
+    """
+    filename = build_audio_filename(unit, slot, slot_number, audio_number, label)
+    path = generate_audio_elevenlabs(
+        text=text,
+        voice_id=voice_id,
+        filename=filename,
+        model_id=model_id,
+    )
+    return path, filename
 
 
 # ==========================
@@ -1642,40 +1720,22 @@ def go_to_page(page_id: str):
 
 
 def render_floating_menu(current_page_id: str):
-    items_html = ""
-    for page in PAGES:
-        page_id = page["id"]
-        label = page["label"]
-        icon = page["icon"]
+    page_ids = [p["id"] for p in PAGES]
+    labels = {p["id"]: f"{p['icon']} {p['label']}" for p in PAGES}
+    default_index = page_ids.index(current_page_id) if current_page_id in page_ids else 0
 
-        is_active = (page_id == current_page_id)
-        active_class = "active" if is_active else ""
+    st.sidebar.markdown("### ☰ Menu")
+    selected_id = st.sidebar.selectbox(
+        "Navigation",
+        options=page_ids,
+        format_func=lambda pid: labels.get(pid, pid),
+        index=default_index,
+        key="nav_selectbox",
+    )
+    st.sidebar.caption("Usa este menú para navegar sin perder la sesión de admin.")
 
-        items_html += f"""
-<form method="get" style="margin:0; padding:0;">
-  <input type="hidden" name="page" value="{page_id}">
-  <button type="submit" class="menu-link-btn {active_class}">
-    {icon} {label}
-  </button>
-</form>
-"""
-
-    menu_html = textwrap.dedent(f"""
-<div class="floating-menu-wrapper">
-  <input type="checkbox" id="floating-menu-toggle" class="floating-menu-toggle" />
-  
-  <label for="floating-menu-toggle" class="floating-menu-button">
-    ☰ Menu
-  </label>
-
-  <div class="floating-menu-panel">
-    <div class="floating-menu-header">Navigate</div>
-    {items_html}
-  </div>
-</div>
-""")
-
-    st.markdown(menu_html, unsafe_allow_html=True)
+    if selected_id != current_page_id:
+        go_to_page(selected_id)
 
 
 # ==========================
@@ -2474,11 +2534,24 @@ Complete:
                 height=220,
                 key="u3_c1_script1"
             )
+            audio1_label = st.text_input(
+                "Nombre corto para el archivo",
+                value="food_words",
+                key="u3_c1_audio1_label",
+                help="Se usará para nombrar el mp3 automáticamente.",
+            )
+            voice1 = st.text_input(
+                "ElevenLabs voice ID",
+                value=DEFAULT_ELEVEN_VOICE_ID,
+                key="u3_c1_audio1_voice",
+            )
+            audio1_filename = build_audio_filename(3, "C", 1, 1, audio1_label)
+            st.caption(f"El archivo se guardará como: `{audio1_filename}` en `audio/`.")
             if st.button("Generate Audio 1 with ElevenLabs", key="btn_u3_c1_audio1"):
                 path = generate_audio_elevenlabs(
                     text=script1,
-                    voice_id="RILOU7YmBhvwJGDGjNmP",  # tu voz de teacher
-                    filename="U3_C1_audio1_food_words.mp3"
+                    voice_id=voice1,
+                    filename=audio1_filename
                 )
                 if path:
                     st.success(f"Audio 1 generated and saved at: {path}")
@@ -2490,11 +2563,23 @@ Complete:
                 height=260,
                 key="u3_c1_script2"
             )
+            audio2_label = st.text_input(
+                "Nombre corto para el archivo",
+                value="at_the_supermarket",
+                key="u3_c1_audio2_label",
+            )
+            voice2 = st.text_input(
+                "ElevenLabs voice ID",
+                value=DEFAULT_ELEVEN_VOICE_ID,
+                key="u3_c1_audio2_voice",
+            )
+            audio2_filename = build_audio_filename(3, "C", 1, 2, audio2_label)
+            st.caption(f"El archivo se guardará como: `{audio2_filename}` en `audio/`.")
             if st.button("Generate Audio 2 with ElevenLabs", key="btn_u3_c1_audio2"):
                 path = generate_audio_elevenlabs(
                     text=script2,
-                    voice_id="RILOU7YmBhvwJGDGjNmP",  # puedes cambiar la voz si quieres
-                    filename="U3_C1_audio2_at_the_supermarket.mp3"
+                    voice_id=voice2,
+                    filename=audio2_filename
                 )
                 if path:
                     st.success(f"Audio 2 generated and saved at: {path}")
@@ -4031,9 +4116,6 @@ def lessons_page():
             lesson_title=lesson_choice,
         )
 
-    with st.expander("Try the A2 program selector (beta)"):
-        render_a2_unit_lesson()
-
 
 def assessment_page():
     show_logo()
@@ -4280,6 +4362,95 @@ You can use this for:
 - Extra class content (instructions, quizzes, etc.)
         """
     )
+
+    with st.expander("Quick ElevenLabs generator (auto naming)", expanded=False):
+        st.caption("Envía el script a ElevenLabs y guarda el mp3 en `audio/` con un nombre consistente.")
+        with st.form("eleven_quick_form"):
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                gen_unit = st.number_input(
+                    "Unit",
+                    min_value=1,
+                    max_value=20,
+                    value=3,
+                    step=1,
+                    key="gen_unit",
+                )
+            with col2:
+                gen_slot_choice = st.selectbox(
+                    "Tipo de bloque",
+                    ["Session (S)", "Class (C)", "Hour (H)"],
+                    index=1,
+                    key="gen_slot_choice",
+                )
+            with col3:
+                gen_slot_number = st.number_input(
+                    "Session/Class/Hour #",
+                    min_value=1,
+                    max_value=10,
+                    value=1,
+                    step=1,
+                    key="gen_slot_number",
+                )
+
+            gen_audio_number = st.number_input(
+                "Audio number",
+                min_value=1,
+                max_value=15,
+                value=1,
+                step=1,
+                key="gen_audio_number",
+            )
+            gen_label = st.text_input(
+                "Short label for filename",
+                value="sample_audio",
+                key="gen_audio_label",
+            )
+            gen_voice_id = st.text_input(
+                "Voice ID",
+                value=DEFAULT_ELEVEN_VOICE_ID,
+                key="gen_audio_voice",
+            )
+            gen_model_id = st.text_input(
+                "Model ID",
+                value="eleven_turbo_v2",
+                key="gen_audio_model",
+            )
+            gen_script = st.text_area(
+                "Script to send to ElevenLabs",
+                height=220,
+                key="gen_audio_script",
+            )
+
+            slot_code_preview = gen_slot_choice.split("(")[-1].replace(")", "").strip()
+            slot_code_preview = slot_code_preview[0] if slot_code_preview else "S"
+            preview_filename = build_audio_filename(
+                gen_unit,
+                slot_code_preview,
+                gen_slot_number,
+                gen_audio_number,
+                gen_label,
+            )
+            st.caption(f"El archivo se guardará como: `audio/{preview_filename}`.")
+
+            submitted_gen_audio = st.form_submit_button("Generate audio with ElevenLabs")
+
+        if submitted_gen_audio:
+            slot_code = gen_slot_choice.split("(")[-1].replace(")", "").strip()
+            slot_code = slot_code[0] if slot_code else "S"
+            path, final_filename = generate_audio_with_metadata(
+                text=gen_script,
+                voice_id=gen_voice_id,
+                unit=int(gen_unit),
+                slot=slot_code,
+                slot_number=int(gen_slot_number),
+                audio_number=int(gen_audio_number),
+                label=gen_label,
+                model_id=gen_model_id or "eleven_turbo_v2",
+            )
+            if path:
+                st.success(f"Audio saved in `audio/{final_filename}`.")
+                st.audio(str(path))
 
     with st.expander("General text blocks (legacy tools)", expanded=False):
         st.markdown("#### 1. Select where to save / load")
