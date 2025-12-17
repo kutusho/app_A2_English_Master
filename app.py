@@ -306,6 +306,133 @@ def save_structured_content(unit: int, lesson: int, payload: dict) -> Path:
         json.dump(payload, f, indent=2, ensure_ascii=False)
     return path
 
+
+def list_structured_lessons() -> list:
+    """
+    Encuentra todos los content.json guardados en content/unit*/class*/content.json.
+    Retorna una lista de dicts: unit, lesson, path, updated_at.
+    """
+    lessons = []
+    if not CONTENT_DIR.exists():
+        return lessons
+
+    for path in CONTENT_DIR.glob("unit*/class*/content.json"):
+        try:
+            unit_match = re.search(r"unit(\d+)", path.parent.parent.name)
+            lesson_match = re.search(r"class(\d+)", path.parent.name)
+            if not unit_match or not lesson_match:
+                continue
+
+            unit_number = int(unit_match.group(1))
+            lesson_number = int(lesson_match.group(1))
+
+            updated_at = None
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if isinstance(data, dict):
+                    updated_at = data.get("updated_at")
+            except Exception:
+                updated_at = None
+
+            lessons.append(
+                {
+                    "unit": unit_number,
+                    "lesson": lesson_number,
+                    "path": path,
+                    "updated_at": updated_at,
+                }
+            )
+        except Exception:
+            continue
+
+    lessons.sort(key=lambda x: (x["unit"], x["lesson"]))
+    return lessons
+
+
+def build_a2_structured_template(topic: str = "") -> dict:
+    """
+    Plantilla A2 para el editor estructurado. Se guarda dentro de class_notes como Markdown.
+    """
+    topic = (topic or "").strip() or "Lesson topic"
+    notes_md = f"""
+### {topic}
+
+#### Warm-up (5–7 min)
+- Question 1:
+- Question 2:
+- Quick speaking prompt:
+
+#### Vocabulary (8–10 min)
+- Key words:
+- Useful phrases:
+- Mini practice:
+
+#### Grammar / Functional language (8–10 min)
+- Target structure:
+- Examples:
+- Controlled practice:
+
+#### Listening (8–10 min)
+- Task:
+- Questions:
+
+#### Speaking (10–15 min)
+- Role play / prompts:
+- Useful starters:
+
+#### Reading (7–10 min)
+- Short text/menu/dialogue:
+- Questions:
+
+#### Writing (8–10 min)
+- Short task:
+- Checklist:
+
+#### Homework (10–15 min)
+- Task 1:
+- Task 2:
+""".strip()
+
+    dialogue = (
+        "Speaker A: Hello!\n"
+        "Speaker B: Hi. How can I help you?\n"
+        "Speaker A: I'd like ... , please.\n"
+        "Speaker B: Sure. Anything else?\n"
+        "Speaker A: That's all, thank you.\n"
+        "Speaker B: You're welcome."
+    )
+
+    eleven_script = (
+        "[modo: teacher friendly]\n"
+        "[velocidad: super extra slow]\n"
+        "[pausas largas]\n"
+        f"Today we practice: {topic}. "
+        "Model two short examples. Pause between sentences. "
+        "Emphasize polite phrases like please and thank you."
+    )
+
+    quiz_json = {
+        "questions": [
+            {
+                "question": "Choose the most polite option:",
+                "options": ["I'd like a coffee, please.", "Coffee now.", "Give me coffee."],
+                "answer": "I'd like a coffee, please.",
+            },
+            {
+                "question": "Complete: Could I ____ the menu, please?",
+                "options": ["have", "to have", "having"],
+                "answer": "have",
+            },
+        ]
+    }
+
+    return {
+        "class_notes": notes_md,
+        "listening_dialogue": dialogue,
+        "elevenlabs_script": eleven_script,
+        "quiz_json": quiz_json,
+    }
 # ==========================
 # ElevenLabs helper
 # ==========================
@@ -2671,6 +2798,64 @@ def _parse_quiz_payload(raw) -> list:
     return parsed
 
 
+def render_structured_lesson_content(
+    content: dict,
+    *,
+    preview: bool = False,
+    key_prefix: str = "structured",
+):
+    """
+    Renderer genérico para contenido estructurado guardado en content.json.
+    Espera llaves: class_notes, listening_dialogue, elevenlabs_script, quiz_json, updated_at.
+    """
+    notes = (content or {}).get("class_notes") or ""
+    dialogue = (content or {}).get("listening_dialogue") or ""
+    eleven_script = (content or {}).get("elevenlabs_script") or ""
+    quiz_questions = _parse_quiz_payload((content or {}).get("quiz_json"))
+    updated_at = (content or {}).get("updated_at")
+
+    if notes:
+        st.markdown("### Class notes")
+        st.markdown(notes)
+        if updated_at:
+            st.caption(f"Last updated: {updated_at}")
+
+    tab_dialogue, tab_script, tab_quiz = st.tabs(
+        ["🔊 Dialogue & listening", "🎙️ ElevenLabs script", "🧠 Quick quiz"]
+    )
+
+    with tab_dialogue:
+        st.markdown("#### Dialogue")
+        if dialogue:
+            st.text(dialogue)
+        else:
+            st.info("No dialogue saved yet.")
+
+    with tab_script:
+        st.markdown("#### Teacher narration script")
+        if eleven_script:
+            st.text(eleven_script)
+        else:
+            st.info("No script saved yet.")
+
+    with tab_quiz:
+        if not quiz_questions:
+            st.info("No quiz saved yet.")
+        else:
+            for idx, question in enumerate(quiz_questions):
+                key_suffix = "_preview" if preview else ""
+                choice = st.radio(
+                    question["question"],
+                    question["options"],
+                    key=f"{key_prefix}_quiz_{idx}{key_suffix}",
+                )
+                if choice:
+                    if choice == question["answer"]:
+                        st.success("Correct!")
+                    else:
+                        st.warning(f"Suggested answer: {question['answer']}")
+
+
 def render_unit3_class2_content(content: dict, preview: bool = False):
     notes = content.get("class_notes") or DEFAULT_U3C2_CONTENT["class_notes"]
     dialogue = content.get("listening_dialogue") or DEFAULT_U3C2_CONTENT["listening_dialogue"]
@@ -2795,7 +2980,46 @@ def render_a2_unit_lesson(default_unit="Unit 3 – Food", default_lesson="Class 
 
 def render_placeholder_lesson(unit_title: str, lesson_title: str):
     st.subheader(f"{unit_title} • {lesson_title}")
-    st.info("This lesson is not developed yet. Add content by creating a new renderer function like Unit 3 • Class 2.")
+    unit_match = re.search(r"\bUnit\s+(\d+)\b", unit_title or "")
+    class_match = re.search(r"\bClass\s+(\d+)\b", lesson_title or "")
+    unit_number = int(unit_match.group(1)) if unit_match else None
+    class_number = int(class_match.group(1)) if class_match else None
+
+    if unit_number and class_number:
+        stored = load_structured_content(unit_number, class_number)
+        if stored:
+            st.success(f"Dynamic teacher content loaded from `{structured_content_path(unit_number, class_number)}`")
+            col1, col2 = st.columns([0.35, 0.65])
+            with col1:
+                if st.button(
+                    "✍️ Edit in Content Admin",
+                    key=f"btn_edit_u{unit_number}_c{class_number}",
+                    use_container_width=True,
+                ):
+                    st.session_state["sc_unit"] = unit_number
+                    st.session_state["sc_class"] = class_number
+                    st.session_state["sc_autoload"] = {"unit": unit_number, "class": class_number}
+                    go_to_page("Content Admin")
+            with col2:
+                st.caption("Tip: usa el Quiz Builder para no escribir JSON.")
+
+            render_structured_lesson_content(
+                stored,
+                preview=False,
+                key_prefix=f"u{unit_number}_c{class_number}",
+            )
+            return
+
+        st.info(
+            "This lesson doesn't have teacher content yet. "
+            "Create it in Content Admin (Structured content editor)."
+        )
+        if st.button("Open Content Admin", key=f"btn_open_admin_u{unit_number}_c{class_number}"):
+            st.session_state["sc_unit"] = unit_number
+            st.session_state["sc_class"] = class_number
+            go_to_page("Content Admin")
+    else:
+        st.info("This lesson is not developed yet. Add content by creating a new renderer function like Unit 3 • Class 2.")
 
 
 def render_u3_c2_at_the_restaurant(unit_title: str, lesson_title: str, key_prefix: str = "u3c2"):
@@ -4519,97 +4743,346 @@ You can use this for:
             st.success(f"Content saved successfully in: `{path}`")
 
     st.markdown("---")
-    st.subheader("Unit 3 – Class 2 · Structured content")
-    st.caption("Save class_notes, listening_dialogue, elevenlabs_script and quiz_json to feed the class page.")
+    st.subheader("Structured content (Unit/Class) · Fast editor")
+    st.caption(
+        "Edita `class_notes`, `listening_dialogue`, `elevenlabs_script` y un quiz sin tener que escribir JSON a mano. "
+        "Se guarda en `content/unit<unit>/class<class>/content.json`."
+    )
 
-    existing_structured = load_structured_content(3, 2)
-    defaults = existing_structured if existing_structured else DEFAULT_U3C2_CONTENT
+    col_s1, col_s2, col_s3 = st.columns([0.22, 0.22, 0.56])
+    with col_s1:
+        sc_unit = st.number_input("Unit", min_value=1, max_value=20, value=3, step=1, key="sc_unit")
+    with col_s2:
+        sc_class = st.number_input("Class", min_value=1, max_value=20, value=2, step=1, key="sc_class")
+    with col_s3:
+        st.caption(f"Target file: `{structured_content_path(int(sc_unit), int(sc_class))}`")
 
+    editor_prefix = f"sc_u{int(sc_unit)}_c{int(sc_class)}"
+
+    existing_structured = load_structured_content(int(sc_unit), int(sc_class))
     if existing_structured.get("updated_at"):
         st.caption(f"Last saved: {existing_structured.get('updated_at')}")
 
-    if st.button("🔄 Load saved content", key="load_structured_u3c2"):
-        st.session_state["u3c2_notes"] = defaults.get("class_notes", "")
-        st.session_state["u3c2_dialogue"] = defaults.get("listening_dialogue", "")
-        st.session_state["u3c2_script"] = defaults.get("elevenlabs_script", "")
-        st.session_state["u3c2_quiz_text"] = json.dumps(
-            defaults.get("quiz_json", {}),
+    if int(sc_unit) == 3 and int(sc_class) == 2:
+        default_template = DEFAULT_U3C2_CONTENT
+    else:
+        default_template = {
+            "class_notes": "",
+            "listening_dialogue": "",
+            "elevenlabs_script": "",
+            "quiz_json": {"questions": []},
+        }
+
+    active_defaults = existing_structured if existing_structured else default_template
+
+    def _apply_structured_payload_to_editor(payload: dict):
+        payload = payload or {}
+        st.session_state[f"{editor_prefix}_notes"] = payload.get("class_notes", "")
+        st.session_state[f"{editor_prefix}_dialogue"] = payload.get("listening_dialogue", "")
+        st.session_state[f"{editor_prefix}_script"] = payload.get("elevenlabs_script", "")
+        if f"{editor_prefix}_quiz_mode" not in st.session_state:
+            st.session_state[f"{editor_prefix}_quiz_mode"] = "Builder"
+        st.session_state[f"{editor_prefix}_quiz_json_text"] = json.dumps(
+            payload.get("quiz_json", {"questions": []}),
             indent=2,
             ensure_ascii=False,
         )
-        st.success("Structured content loaded into the form.")
-        st.rerun()
+        quiz_questions = _parse_quiz_payload(payload.get("quiz_json"))
+        st.session_state[f"{editor_prefix}_quiz_count"] = max(1, len(quiz_questions) or 1)
+        for i, q in enumerate(quiz_questions):
+            st.session_state[f"{editor_prefix}_q{i}_text"] = q.get("question", "")
+            st.session_state[f"{editor_prefix}_q{i}_opts"] = "\n".join(q.get("options") or [])
+            st.session_state[f"{editor_prefix}_q{i}_ans"] = q.get("answer", "")
 
-    notes_value = st.session_state.get("u3c2_notes", defaults.get("class_notes", ""))
-    dialogue_value = st.session_state.get("u3c2_dialogue", defaults.get("listening_dialogue", ""))
-    script_value = st.session_state.get("u3c2_script", defaults.get("elevenlabs_script", ""))
-    quiz_text_default = st.session_state.get("u3c2_quiz_text")
-    if quiz_text_default is None:
-        quiz_text_default = json.dumps(defaults.get("quiz_json", {}), indent=2, ensure_ascii=False)
+    autoload = st.session_state.get("sc_autoload")
+    if (
+        isinstance(autoload, dict)
+        and autoload.get("unit") == int(sc_unit)
+        and autoload.get("class") == int(sc_class)
+    ):
+        _apply_structured_payload_to_editor(active_defaults)
+        st.session_state.pop("sc_autoload", None)
+
+    with st.expander("📚 Lesson library (existing content.json)", expanded=False):
+        st.caption("Detecta automáticamente todas las clases que ya tienen `content.json` y permite abrirlas en el editor.")
+        lessons = list_structured_lessons()
+        if not lessons:
+            st.info("No se encontraron lecciones guardadas todavía.")
+        else:
+            options = []
+            for item in lessons:
+                label = f"U{item['unit']} · C{item['lesson']}"
+                if item.get("updated_at"):
+                    label += f" · {item['updated_at']}"
+                options.append((label, item["unit"], item["lesson"]))
+
+            selected = st.selectbox(
+                "Select a saved lesson",
+                options=options,
+                format_func=lambda x: x[0],
+                key="sc_library_select",
+            )
+
+            col_l1, col_l2 = st.columns([0.35, 0.65])
+            with col_l1:
+                if st.button("Open in editor", key="sc_library_open", use_container_width=True):
+                    st.session_state["sc_unit"] = int(selected[1])
+                    st.session_state["sc_class"] = int(selected[2])
+                    st.session_state["sc_autoload"] = {"unit": int(selected[1]), "class": int(selected[2])}
+                    st.rerun()
+            with col_l2:
+                st.caption(f"Tip: luego usa Export para descargar el `content.json`.")
+
+    col_a, col_b, col_c = st.columns([0.22, 0.22, 0.56])
+    with col_a:
+        if st.button("🔄 Load from disk", key=f"{editor_prefix}_load"):
+            _apply_structured_payload_to_editor(active_defaults)
+            st.success("Loaded into the editor.")
+            st.rerun()
+    with col_b:
+        if st.button("🧹 Reset to blank", key=f"{editor_prefix}_reset"):
+            _apply_structured_payload_to_editor(default_template)
+            st.success("Reset done.")
+            st.rerun()
+    with col_c:
+        uploaded = st.file_uploader(
+            "Import `content.json` (optional)",
+            type=["json"],
+            key=f"{editor_prefix}_upload",
+            help="Sube un content.json exportado para cargarlo al editor.",
+        )
+        if uploaded is not None:
+            try:
+                imported = json.loads(uploaded.getvalue().decode("utf-8"))
+                if not isinstance(imported, dict):
+                    st.error("El JSON importado debe ser un objeto (dict).")
+                else:
+                    if st.button("📥 Apply import into editor", key=f"{editor_prefix}_apply_import"):
+                        _apply_structured_payload_to_editor(imported)
+                        st.success("Imported content loaded into the editor.")
+                        st.rerun()
+            except Exception as exc:
+                st.error(f"No se pudo leer el JSON: {exc}")
+
+    with st.expander("📄 Copy / duplicate from another lesson", expanded=False):
+        st.caption("Copia el contenido estructurado desde otra Unit/Class al editor actual.")
+        c1, c2, c3, c4 = st.columns([0.18, 0.18, 0.32, 0.32])
+        with c1:
+            src_unit = st.number_input(
+                "From Unit",
+                min_value=1,
+                max_value=20,
+                value=int(sc_unit),
+                step=1,
+                key=f"{editor_prefix}_src_unit",
+            )
+        with c2:
+            src_class = st.number_input(
+                "From Class",
+                min_value=1,
+                max_value=20,
+                value=max(1, int(sc_class) - 1),
+                step=1,
+                key=f"{editor_prefix}_src_class",
+            )
+        with c3:
+            st.caption(f"Source: `{structured_content_path(int(src_unit), int(src_class))}`")
+        with c4:
+            if st.button("📋 Copy into editor", key=f"{editor_prefix}_copy_from_source", use_container_width=True):
+                source_payload = load_structured_content(int(src_unit), int(src_class))
+                if not source_payload:
+                    st.warning("No source content found. Using blank template.")
+                    source_payload = default_template
+                _apply_structured_payload_to_editor(source_payload)
+                st.success("Copied into the editor (not saved yet).")
+                st.rerun()
+
+    with st.expander("🧩 A2 template (quick start)", expanded=False):
+        st.caption("Genera una plantilla A2 en 1 clic y la aplica al editor (puedes editar antes de guardar).")
+        topic = st.text_input(
+            "Topic / title",
+            value=f"Unit {int(sc_unit)} · Class {int(sc_class)}",
+            key=f"{editor_prefix}_tpl_topic",
+        )
+        col_t1, col_t2 = st.columns([0.45, 0.55])
+        with col_t1:
+            if st.button("Apply template", key=f"{editor_prefix}_tpl_apply", use_container_width=True):
+                tpl = build_a2_structured_template(topic=topic)
+                _apply_structured_payload_to_editor(tpl)
+                st.success("Template applied to editor (not saved yet).")
+                st.rerun()
+        with col_t2:
+            if st.button("Apply + Save", key=f"{editor_prefix}_tpl_apply_save", use_container_width=True):
+                tpl = build_a2_structured_template(topic=topic)
+                path = save_structured_content(int(sc_unit), int(sc_class), tpl)
+                _apply_structured_payload_to_editor(tpl)
+                st.success(f"Template saved in: `{path}`")
+                st.rerun()
 
     notes_value = st.text_area(
         "class_notes",
-        value=notes_value,
+        value=st.session_state.get(f"{editor_prefix}_notes", active_defaults.get("class_notes", "")),
         height=140,
-        key="u3c2_notes",
+        key=f"{editor_prefix}_notes",
     )
     dialogue_value = st.text_area(
         "listening_dialogue",
-        value=dialogue_value,
+        value=st.session_state.get(f"{editor_prefix}_dialogue", active_defaults.get("listening_dialogue", "")),
         height=160,
-        key="u3c2_dialogue",
+        key=f"{editor_prefix}_dialogue",
     )
     script_value = st.text_area(
         "elevenlabs_script",
-        value=script_value,
+        value=st.session_state.get(f"{editor_prefix}_script", active_defaults.get("elevenlabs_script", "")),
         height=160,
-        key="u3c2_script",
-    )
-    quiz_text = st.text_area(
-        "quiz_json (JSON)",
-        value=quiz_text_default,
-        height=200,
-        key="u3c2_quiz_text",
-        help="Use a JSON structure with a list of questions including question, options and answer.",
+        key=f"{editor_prefix}_script",
     )
 
-    parsed_quiz = None
+    st.markdown("#### Quiz")
+    quiz_mode = st.radio(
+        "Quiz input mode",
+        options=["Builder", "JSON (advanced)"],
+        horizontal=True,
+        key=f"{editor_prefix}_quiz_mode",
+    )
+
+    builder_questions = []
     quiz_error = None
-    if quiz_text.strip():
+    if quiz_mode == "Builder":
+        col_q1, col_q2, col_q3 = st.columns([0.2, 0.2, 0.6])
+        with col_q1:
+            if st.button("➕ Add question", key=f"{editor_prefix}_add_q"):
+                st.session_state[f"{editor_prefix}_quiz_count"] = int(
+                    st.session_state.get(f"{editor_prefix}_quiz_count", 1)
+                ) + 1
+                st.rerun()
+        with col_q2:
+            if st.button("➖ Remove last", key=f"{editor_prefix}_remove_q"):
+                st.session_state[f"{editor_prefix}_quiz_count"] = max(
+                    1, int(st.session_state.get(f"{editor_prefix}_quiz_count", 1)) - 1
+                )
+                st.rerun()
+        with col_q3:
+            st.caption("Opciones: 1 por línea. Luego elige la respuesta correcta.")
+
+        quiz_count = int(st.session_state.get(f"{editor_prefix}_quiz_count", 1))
+        for i in range(quiz_count):
+            with st.expander(f"Question {i + 1}", expanded=(i == 0)):
+                q_text = st.text_input(
+                    "Question",
+                    value=st.session_state.get(f"{editor_prefix}_q{i}_text", ""),
+                    key=f"{editor_prefix}_q{i}_text",
+                )
+                opts_text = st.text_area(
+                    "Options (one per line)",
+                    value=st.session_state.get(f"{editor_prefix}_q{i}_opts", ""),
+                    height=110,
+                    key=f"{editor_prefix}_q{i}_opts",
+                )
+                options = [line.strip() for line in (opts_text or "").splitlines() if line.strip()]
+
+                if options:
+                    default_answer = st.session_state.get(f"{editor_prefix}_q{i}_ans", options[0])
+                    if default_answer not in options:
+                        default_answer = options[0]
+                    ans_choice = st.selectbox(
+                        "Correct answer",
+                        options=options,
+                        index=options.index(default_answer),
+                        key=f"{editor_prefix}_q{i}_ans",
+                    )
+                    ans = ans_choice
+                else:
+                    st.info("Add at least 2 options to enable answer selection.")
+                    st.selectbox(
+                        "Correct answer",
+                        options=["(add options first)"],
+                        index=0,
+                        key=f"{editor_prefix}_q{i}_ans",
+                        disabled=True,
+                    )
+                    ans = ""
+
+                if q_text.strip() or options:
+                    builder_questions.append(
+                        {
+                            "question": q_text.strip(),
+                            "options": options,
+                            "answer": ans.strip() if isinstance(ans, str) else ans,
+                        }
+                    )
+
+        invalid_items = []
+        for idx, q in enumerate(builder_questions):
+            if not q["question"]:
+                invalid_items.append(f"Question {idx + 1}: missing question text")
+            if len(q["options"]) < 2:
+                invalid_items.append(f"Question {idx + 1}: needs at least 2 options")
+            if q["answer"] not in q["options"]:
+                invalid_items.append(f"Question {idx + 1}: answer must match one option")
+        if invalid_items:
+            quiz_error = "; ".join(invalid_items)
+
+        quiz_payload = {"questions": builder_questions}
+    else:
+        quiz_text_default = st.session_state.get(f"{editor_prefix}_quiz_json_text")
+        if quiz_text_default is None:
+            quiz_text_default = json.dumps(active_defaults.get("quiz_json", {"questions": []}), indent=2, ensure_ascii=False)
+        quiz_text = st.text_area(
+            "quiz_json (JSON)",
+            value=quiz_text_default,
+            height=220,
+            key=f"{editor_prefix}_quiz_json_text",
+            help="Acepta dict con 'questions' o una lista de preguntas {question, options, answer}.",
+        )
         try:
-            parsed_quiz = json.loads(quiz_text)
+            quiz_payload = json.loads(quiz_text) if quiz_text.strip() else {"questions": []}
         except Exception as exc:
+            quiz_payload = {"questions": []}
             quiz_error = str(exc)
 
-    if st.button("💾 Save structured content", key="save_structured_u3c2"):
+    col_save, col_export = st.columns([0.45, 0.55])
+    with col_save:
+        if st.button("💾 Save structured content", key=f"{editor_prefix}_save", use_container_width=True):
+            if quiz_error:
+                st.error(f"Quiz error: {quiz_error}")
+            else:
+                payload = {
+                    "class_notes": notes_value,
+                    "listening_dialogue": dialogue_value,
+                    "elevenlabs_script": script_value,
+                    "quiz_json": quiz_payload,
+                }
+                path = save_structured_content(int(sc_unit), int(sc_class), payload)
+                st.success(f"Structured content saved in: `{path}`")
+    with col_export:
+        export_payload = {
+            "class_notes": notes_value,
+            "listening_dialogue": dialogue_value,
+            "elevenlabs_script": script_value,
+            "quiz_json": quiz_payload,
+        }
+        st.download_button(
+            "⬇️ Download content.json",
+            data=json.dumps(export_payload, indent=2, ensure_ascii=False).encode("utf-8"),
+            file_name=f"U{int(sc_unit)}_C{int(sc_class)}_content.json",
+            mime="application/json",
+            key=f"{editor_prefix}_download",
+            disabled=bool(quiz_error),
+            use_container_width=True,
+        )
         if quiz_error:
-            st.error(f"Quiz JSON is invalid: {quiz_error}")
-        else:
-            payload = {
-                "class_notes": notes_value,
-                "listening_dialogue": dialogue_value,
-                "elevenlabs_script": script_value,
-                "quiz_json": parsed_quiz if parsed_quiz is not None else [],
-            }
-            path = save_structured_content(3, 2, payload)
-            st.success(f"Structured content saved in: `{path}`")
+            st.caption("Fix the quiz error to enable download.")
 
     st.markdown("#### Preview (student view)")
-    if parsed_quiz is None and not quiz_text.strip():
-        preview_quiz = []
-    else:
-        preview_quiz = parsed_quiz if parsed_quiz is not None else defaults.get("quiz_json", [])
-    if quiz_error:
-        st.warning("Quiz preview uses the last valid data because the JSON is invalid.")
-
     preview_payload = {
         "class_notes": notes_value,
         "listening_dialogue": dialogue_value,
         "elevenlabs_script": script_value,
-        "quiz_json": preview_quiz,
+        "quiz_json": quiz_payload,
         "updated_at": existing_structured.get("updated_at"),
     }
-    render_unit3_class2_content(preview_payload, preview=True)
+    render_structured_lesson_content(preview_payload, preview=True, key_prefix=f"{editor_prefix}_preview")
 
     with st.expander("Quick debug (current auth)"):
         st.json(st.session_state.get("auth", {}))
